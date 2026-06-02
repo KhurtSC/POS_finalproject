@@ -3,14 +3,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!root) return;
 
     const cart = new Map();
-    const search = root.querySelector('[data-product-search]');
+    const search   = root.querySelector('[data-product-search]');
     const category = root.querySelector('[data-category-filter]');
-    const cards = [...root.querySelectorAll('.product-card')];
-    const itemsEl = root.querySelector('[data-cart-items]');
+    const cards    = [...root.querySelectorAll('.product-card')];
+    const itemsEl  = root.querySelector('[data-cart-items]');
     const subtotalEl = root.querySelector('[data-subtotal]');
-    const taxEl = root.querySelector('[data-tax]');
-    const totalEl = root.querySelector('[data-grand-total]');
-    const taxRate = 0.12;
+    const taxEl      = root.querySelector('[data-tax]');
+    const totalEl    = root.querySelector('[data-grand-total]');
+    const taxRate    = 0.12;
 
     const money = (value) => `\u20b1${value.toFixed(2)}`;
 
@@ -47,15 +47,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const tax = subtotal * taxRate;
         subtotalEl.textContent = money(subtotal);
-        taxEl.textContent = money(tax);
-        totalEl.textContent = money(subtotal + tax);
+        taxEl.textContent      = money(tax);
+        totalEl.textContent    = money(subtotal + tax);
     }
 
     function filterProducts() {
-        const term = search.value.trim().toLowerCase();
+        const term     = search.value.trim().toLowerCase();
         const selected = category.value;
         cards.forEach((card) => {
-            const matchesTerm = card.dataset.name.toLowerCase().includes(term);
+            const matchesTerm     = card.dataset.name.toLowerCase().includes(term);
             const matchesCategory = !selected || card.dataset.category === selected;
             card.classList.toggle('hidden', !(matchesTerm && matchesCategory));
         });
@@ -63,9 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cards.forEach((card) => {
         card.addEventListener('click', () => {
-            const key = card.dataset.name;
-            const item = cart.get(key) || { name: key, price: Number(card.dataset.price), qty: 0 };
-            item.qty += 1;
+            const key  = card.dataset.name;
+            const item = cart.get(key) || { name: key, price: Number(card.dataset.price), qty: 0, product_id: Number(card.dataset.id) };
+            item.qty  += 1;
             cart.set(key, item);
             renderCart();
         });
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
     itemsEl.addEventListener('click', (event) => {
         const button = event.target.closest('button');
         if (!button) return;
-        const key = button.dataset.increase || button.dataset.decrease || button.dataset.remove;
+        const key  = button.dataset.increase || button.dataset.decrease || button.dataset.remove;
         const item = cart.get(key);
         if (!item) return;
 
@@ -91,16 +91,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     root.querySelector('[data-checkout]').addEventListener('click', async () => {
         if (!cart.size) return;
-        const payload = { items: [...cart.values()] };
-        await fetch('/api/sales', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            },
-            body: JSON.stringify(payload)
-        }).catch(() => null);
-        window.location.href = '/cashier/receipt/preview';
+
+        const checkoutBtn = root.querySelector('[data-checkout]');
+        checkoutBtn.disabled    = true;
+        checkoutBtn.textContent = 'Processing…';
+
+        const payload = {
+            items: [...cart.values()].map(item => ({
+                product_id: item.product_id,
+                quantity:   item.qty,
+            })),
+        };
+
+        try {
+            const response = await fetch('/api/sales', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                alert(err.message || 'Checkout failed. Please try again.');
+                checkoutBtn.disabled    = false;
+                checkoutBtn.textContent = 'Checkout';
+                return;
+            }
+
+            const data = await response.json();
+            window.location.href = `/cashier/receipt/${data.sale_id}`;
+
+        } catch {
+            alert('Network error. Please check your connection and try again.');
+            checkoutBtn.disabled    = false;
+            checkoutBtn.textContent = 'Checkout';
+        }
     });
 
     search.addEventListener('input', filterProducts);
