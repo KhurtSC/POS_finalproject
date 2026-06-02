@@ -21,6 +21,22 @@
         </div>
     </form>
 
+    {{-- Export buttons (P2.1 / P2.2 / P2.3) --}}
+    <div class="mb-6 flex flex-wrap gap-2">
+        <a href="{{ route('admin.reports.export.csv', ['from' => $from, 'to' => $to]) }}"
+           class="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-bold hover:bg-slate-50">
+            ↓ Export CSV
+        </a>
+        <a href="{{ route('admin.reports.export.xlsx', ['from' => $from, 'to' => $to]) }}"
+           class="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-bold hover:bg-slate-50">
+            ↓ Export Excel
+        </a>
+        <a href="{{ route('admin.reports.export.pdf', ['from' => $from, 'to' => $to]) }}"
+           class="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-bold hover:bg-slate-50">
+            ↓ Export PDF
+        </a>
+    </div>
+
     {{-- Summary cards --}}
     <div class="grid gap-4 sm:grid-cols-3">
         <x-card label="Total Sales"          value="{{ $totalSales }}" />
