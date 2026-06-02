@@ -134,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const change          = Math.max(0, tendered - total);
         changeDisplay.textContent = money(change);
 
-        // Also refresh total in modal in case discount changed
         modalTotal.textContent    = money(total);
         if (amount > 0) {
             discountRow.classList.remove('hidden');
@@ -157,7 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const paymentMethod      = selectedPaymentMethod();
         const amountTendered     = parseFloat(tenderedInput.value) || 0;
 
-        // Validate cash tendered
         if (paymentMethod === 'cash' && amountTendered < total) {
             alert(`Cash tendered (${money(amountTendered)}) is less than the total (${money(total)}).`);
             return;
@@ -188,6 +186,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(payload),
             });
 
+            if (response.status === 401) {
+                alert('Unauthenticated. Please refresh the page and log in again.');
+                confirmBtn.disabled    = false;
+                confirmBtn.textContent = 'Confirm Sale';
+                return;
+            }
+
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
                 alert(err.message || 'Checkout failed. Please try again.');
@@ -199,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             window.location.href = `/cashier/receipt/${data.sale_id}`;
 
-        } catch {
+        } catch (error) {
             alert('Network error. Please check your connection and try again.');
             confirmBtn.disabled    = false;
             confirmBtn.textContent = 'Confirm Sale';
@@ -278,6 +283,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // Search and filter
     search.addEventListener('input', filterProducts);
     category.addEventListener('change', filterProducts);
+
+    // ── Barcode Scanner / Search Enter Key ───────────────────────────────────
+search.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault(); 
+        const term = search.value.trim().toLowerCase();
+        
+        if (!term) return;
+
+        // Find a card that matches the barcode OR the exact product name
+        const matchedCard = cards.find(card => {
+            const barcode = (card.dataset.barcode || '').toLowerCase();
+            const name    = (card.dataset.name || '').toLowerCase();
+            return barcode === term || name === term;
+        });
+
+        if (matchedCard) {
+            // Simulate clicking the card to add it to the cart
+            matchedCard.click(); 
+            
+            // Clear the input so it's ready for the next scan
+            search.value = ''; 
+            filterProducts(); 
+        } else {
+            alert('Product not found! Please check the barcode or spelling.');
+                }
+            }
+        });
 
     // Initial render
     renderCart();

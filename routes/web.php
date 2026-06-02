@@ -48,12 +48,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
 // ── Cashier ───────────────────────────────────────────────────────────────────
 
+// routes/web.php
+
 Route::prefix('cashier')->name('cashier.')->middleware(['auth', 'cashier'])->group(function () {
     Route::get('/dashboard', [CashierDashboardController::class, 'index'])->name('dashboard');
     Route::get('/cart', [CartController::class, 'index'])->name('cart');
     Route::get('/receipt/{sale}', [CartController::class, 'receipt'])->name('receipt');
+    
+    // Add your checkout route here!
+   
 });
-
 // NOTE: All JSON API routes live in routes/api.php (loaded automatically under /api prefix).
 // The SaleApiController::void() route is registered there and is accessible from the UI
 // via the void button added to admin/sales/show.blade.php.

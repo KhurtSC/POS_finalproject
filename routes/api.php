@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['web', 'auth'])->group(function () {
 
     // ── Products ─────────────────────────────────────────────────────────────
     Route::get('/products',         [ProductApiController::class, 'index']);
