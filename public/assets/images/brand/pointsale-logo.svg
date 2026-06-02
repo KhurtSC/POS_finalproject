@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 180" role="img" aria-labelledby="title desc">
+  <title id="title">Cafe POS logo</title>
+  <desc id="desc">A clean cafe point of sale logo with a coffee cup, receipt, and subtle checkout mark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="520" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#134e4a"/>
+    </linearGradient>
+    <linearGradient id="cup" x1="53" y1="40" x2="155" y2="142" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#14b8a6"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="180" rx="34" fill="url(#bg)"/>
+  <g transform="translate(32 24)">
+    <rect width="132" height="132" rx="30" fill="#f8fafc"/>
+    <path d="M28 60h66v24c0 24-14 39-33 39s-33-15-33-39V60Z" fill="url(#cup)"/>
+    <path d="M94 70h11c11 0 19 9 19 20s-8 20-19 20H94" fill="none" stroke="#14b8a6" stroke-width="10" stroke-linecap="round"/>
+    <path d="M39 47c5-12 18-12 23 0 5 11 18 11 23 0" fill="none" stroke="#0f172a" stroke-width="7" stroke-linecap="round"/>
+    <path d="M40 124h55" stroke="#0f172a" stroke-width="9" stroke-linecap="round"/>
+    <rect x="83" y="20" width="36" height="60" rx="8" fill="#0f172a"/>
+    <path d="M94 36h14M94 50h11M94 64h14" stroke="#99f6e4" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <text x="195" y="78" fill="#ffffff" font-family="Figtree, Arial, sans-serif" font-size="44" font-weight="900">Cafe POS</text>
+  <text x="198" y="116" fill="#fbbf24" font-family="Figtree, Arial, sans-serif" font-size="19" font-weight="800">Coffee Shop Checkout</text>
+  <path d="M200 137h196" stroke="#14b8a6" stroke-width="7" stroke-linecap="round"/>
+</svg>

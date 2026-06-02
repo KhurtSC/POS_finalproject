@@ -1,0 +1,1 @@
+<x-layout title="Edit Category">@include('admin.categories.partials.form', ['category' => $category ?? null, 'action' => route('admin.categories.update', $category ?? 1), 'method' => 'PUT'])</x-layout>
