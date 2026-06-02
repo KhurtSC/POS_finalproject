@@ -1,3 +1,8 @@
 <x-layout title="Edit Product">
-    @include('admin.products.partials.form', ['product' => $product ?? null, 'action' => route('admin.products.update', $product ?? 1), 'method' => 'PUT'])
+    @include('admin.products._form', [
+        'product'    => $product,
+        'action'     => route('admin.products.update', $product),
+        'method'     => 'PUT',
+        'categories' => $categories,
+    ])
 </x-layout>

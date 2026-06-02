@@ -3,21 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Product;
-use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ProductApiController extends Controller
 {
     // ── GET /api/products ────────────────────────────────────────────────────
-    // Used by the POS screen to populate the product grid.
 
     public function index(Request $request): JsonResponse
     {
         $products = Product::with('category:id,name,slug')
-            ->available()                          // is_available = true AND stock > 0
+            ->available()
             ->when($request->filled('category_id'), fn ($q) =>
                 $q->inCategory((int) $request->category_id)
             )
@@ -48,16 +48,21 @@ class ProductApiController extends Controller
             'stock'               => ['sometimes', 'integer', 'min:0'],
             'low_stock_threshold' => ['sometimes', 'integer', 'min:0'],
             'is_available'        => ['sometimes', 'boolean'],
+            'image'               => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
 
         $product = Product::create($data);
 
-        ActivityLogger::log(
-            event: 'product.created',
-            description: "Product \"{$product->name}\" created by " . Auth::user()->name . ".",
-            subject: $product,
-            context: ['price' => $product->price, 'stock' => $product->stock],
-        );
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'event'       => 'product.created',
+            'description' => 'Product "' . $product->name . '" created via API.',
+            'context'     => ['price' => $product->price, 'stock' => $product->stock],
+        ]);
 
         return response()->json($product, 201);
     }
@@ -78,17 +83,25 @@ class ProductApiController extends Controller
             'stock'               => ['sometimes', 'integer', 'min:0'],
             'low_stock_threshold' => ['sometimes', 'integer', 'min:0'],
             'is_available'        => ['sometimes', 'boolean'],
+            'image'               => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
+
+        if ($request->hasFile('image')) {
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
 
         $old = $product->only(array_keys($data));
         $product->update($data);
 
-        ActivityLogger::log(
-            event: 'product.updated',
-            description: "Product \"{$product->name}\" updated by " . Auth::user()->name . ".",
-            subject: $product,
-            context: ['old' => $old, 'new' => $data],
-        );
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'event'       => 'product.updated',
+            'description' => 'Product "' . $product->name . '" updated via API.',
+            'context'     => ['old' => $old, 'new' => $data],
+        ]);
 
         return response()->json($product);
     }
@@ -100,13 +113,17 @@ class ProductApiController extends Controller
         $product = Product::findOrFail($id);
         $name    = $product->name;
 
-        $product->delete(); // soft delete
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
 
-        ActivityLogger::log(
-            event: 'product.deleted',
-            description: "Product \"{$name}\" deleted by " . Auth::user()->name . ".",
-            subject: $product,
-        );
+        $product->delete();
+
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'event'       => 'product.deleted',
+            'description' => 'Product "' . $name . '" deleted via API.',
+        ]);
 
         return response()->json(['message' => "Product \"{$name}\" deleted."]);
     }
