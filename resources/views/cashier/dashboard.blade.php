@@ -11,7 +11,8 @@
                 </select>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {{-- Product grid --}}
+            <div data-product-grid class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($products ?? [] as $product)
                     <button type="button"
                         class="product-card overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md"
@@ -20,7 +21,10 @@
                         data-category="{{ $product->category_id }}"
                         data-price="{{ $product->price }}">
                         @if ($product->image)
-                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="h-40 w-full object-cover">
+                            <img src="{{ asset('storage/' . $product->image) }}"
+                                 alt="{{ $product->name }}"
+                                 class="h-40 w-full object-cover"
+                                 loading="lazy">
                         @else
                             <div class="flex h-40 w-full items-center justify-center bg-slate-100 text-3xl">☕</div>
                         @endif
@@ -41,6 +45,19 @@
                         </div>
                     </button>
                 @endforeach
+            </div>
+
+            {{-- Pagination controls --}}
+            <div class="mt-5 flex items-center justify-between">
+                <button data-prev-page
+                    class="rounded-md border border-slate-300 px-4 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40">
+                    ← Prev
+                </button>
+                <span data-page-info class="text-sm font-semibold text-slate-500"></span>
+                <button data-next-page
+                    class="rounded-md border border-slate-300 px-4 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40">
+                    Next →
+                </button>
             </div>
         </section>
 

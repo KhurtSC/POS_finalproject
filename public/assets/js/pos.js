@@ -6,25 +6,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Philippine standard: selling prices are VAT-INCLUSIVE.
     // A product priced at ₱150 already contains VAT.
     // Back-calculate: VAT portion = total × 12/112, net = total × 100/112.
-    // The stored total_amount in the DB is always the full VAT-inclusive price —
-    // no schema changes needed. We're just displaying the breakdown correctly.
     const VAT_RATE    = 0.12;
     const VAT_DIVISOR = 1 + VAT_RATE; // 1.12
 
     const vatOf = (inclusive) => parseFloat((inclusive * VAT_RATE / VAT_DIVISOR).toFixed(2));
     const netOf = (inclusive) => parseFloat((inclusive / VAT_DIVISOR).toFixed(2));
 
-    // ── State ────────────────────────────────────────────────────────────────
+    // ── State ─────────────────────────────────────────────────────────────────
     const cart = new Map();
 
-    // ── DOM refs ─────────────────────────────────────────────────────────────
-    const search     = root.querySelector('[data-product-search]');
-    const category   = root.querySelector('[data-category-filter]');
-    const cards      = [...root.querySelectorAll('.product-card')];
-    const itemsEl    = root.querySelector('[data-cart-items]');
-    const subtotalEl = root.querySelector('[data-subtotal]');    // VAT-exclusive net
-    const taxEl      = root.querySelector('[data-tax]');          // VAT portion
-    const totalEl    = root.querySelector('[data-grand-total]');  // VAT-inclusive total
+    // ── Pagination state ──────────────────────────────────────────────────────
+    const PAGE_SIZE    = 6;
+    let   currentPage  = 1;
+
+    // ── DOM refs ──────────────────────────────────────────────────────────────
+    const search      = root.querySelector('[data-product-search]');
+    const category    = root.querySelector('[data-category-filter]');
+    const cards       = [...root.querySelectorAll('.product-card')];
+    const grid        = root.querySelector('[data-product-grid]');
+    const itemsEl     = root.querySelector('[data-cart-items]');
+    const subtotalEl  = root.querySelector('[data-subtotal]');
+    const taxEl       = root.querySelector('[data-tax]');
+    const totalEl     = root.querySelector('[data-grand-total]');
+    const prevBtn     = root.querySelector('[data-prev-page]');
+    const nextBtn     = root.querySelector('[data-next-page]');
+    const pageInfo    = root.querySelector('[data-page-info]');
 
     // Modal refs
     const modal         = document.querySelector('[data-checkout-modal]');
@@ -40,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelBtn     = modal.querySelector('[data-modal-cancel]');
     const confirmBtn    = modal.querySelector('[data-modal-confirm]');
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
     const money = (v) => `₱${Number(v).toFixed(2)}`;
 
     const getGrossTotal = () => {
@@ -63,7 +69,45 @@ document.addEventListener('DOMContentLoaded', () => {
         return { percent: 0, amount: val };
     }
 
-    // ── Cart render ──────────────────────────────────────────────────────────
+    // ── Pagination ────────────────────────────────────────────────────────────
+
+    // Returns only the cards that pass the current search + category filter
+    function getVisibleCards() {
+        const term     = search.value.trim().toLowerCase();
+        const selected = category.value;
+        return cards.filter(card => {
+            const matchesTerm     = card.dataset.name.toLowerCase().includes(term);
+            const matchesCategory = !selected || card.dataset.category === selected;
+            return matchesTerm && matchesCategory;
+        });
+    }
+
+    function renderPage() {
+        const visible    = getVisibleCards();
+        const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+
+        // Clamp currentPage in case filters shrink the result set
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const end   = start + PAGE_SIZE;
+
+        // Show/hide each card based on whether it's in the current page slice
+        cards.forEach(card => card.style.display = 'none');
+        visible.slice(start, end).forEach(card => card.style.display = '');
+
+        // Update pagination controls
+        if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        if (prevBtn)  prevBtn.disabled = currentPage <= 1;
+        if (nextBtn)  nextBtn.disabled = currentPage >= totalPages;
+    }
+
+    function filterProducts() {
+        currentPage = 1; // reset to first page on every filter/search change
+        renderPage();
+    }
+
+    // ── Cart render ───────────────────────────────────────────────────────────
     function renderCart() {
         itemsEl.innerHTML = '';
         let grossTotal = 0;
@@ -95,27 +139,15 @@ document.addEventListener('DOMContentLoaded', () => {
             itemsEl.innerHTML = '<div class="p-5 text-sm font-semibold text-slate-500">No items in cart yet.</div>';
         }
 
-        // Back-calculate VAT from the gross VAT-inclusive total
         const vatAmount = vatOf(grossTotal);
         const netAmount = netOf(grossTotal);
 
-        subtotalEl.textContent = money(netAmount);   // ex-VAT net shown as "Subtotal"
-        if (taxEl) taxEl.textContent = money(vatAmount);  // VAT 12% portion
-        totalEl.textContent    = money(grossTotal);  // what customer pays = what DB stores
+        subtotalEl.textContent = money(netAmount);
+        if (taxEl) taxEl.textContent = money(vatAmount);
+        totalEl.textContent    = money(grossTotal);
     }
 
-    // ── Product filter ───────────────────────────────────────────────────────
-    function filterProducts() {
-        const term     = search.value.trim().toLowerCase();
-        const selected = category.value;
-        cards.forEach((card) => {
-            const matchesTerm     = card.dataset.name.toLowerCase().includes(term);
-            const matchesCategory = !selected || card.dataset.category === selected;
-            card.classList.toggle('hidden', !(matchesTerm && matchesCategory));
-        });
-    }
-
-    // ── Modal helpers ────────────────────────────────────────────────────────
+    // ── Modal helpers ─────────────────────────────────────────────────────────
     function openModal() {
         const gross               = getGrossTotal();
         const { amount, percent } = computeDiscount(gross);
@@ -160,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cashSection.classList.toggle('hidden', selectedPaymentMethod() !== 'cash');
     }
 
-    // ── Checkout submit ──────────────────────────────────────────────────────
+    // ── Checkout submit ───────────────────────────────────────────────────────
     async function submitSale() {
         const gross                                                = getGrossTotal();
         const { amount: discountAmount, percent: discountPercent } = computeDiscount(gross);
@@ -216,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ── Event listeners ──────────────────────────────────────────────────────
+    // ── Event listeners ───────────────────────────────────────────────────────
     cards.forEach((card) => {
         card.addEventListener('click', () => {
             const key  = card.dataset.name;
@@ -268,6 +300,11 @@ document.addEventListener('DOMContentLoaded', () => {
     search.addEventListener('input', filterProducts);
     category.addEventListener('change', filterProducts);
 
+    if (prevBtn) prevBtn.addEventListener('click', () => { currentPage--; renderPage(); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { currentPage++; renderPage(); });
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    renderPage();
     renderCart();
     toggleCashSection();
 });
