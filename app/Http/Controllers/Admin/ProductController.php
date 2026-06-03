@@ -94,6 +94,14 @@ class ProductController extends Controller
         ]);
     }
 
+    public function label(Product $product): View
+    {
+        $code = $product->sku ?: (string) $product->id;
+        $scanPayload = url('/cashier/dashboard') . '?sku=' . urlencode($code);
+
+        return view('admin.products.label', compact('product', 'code', 'scanPayload'));
+    }
+
     public function update(Request $request, Product $product): RedirectResponse
     {
         $data = $request->validate([

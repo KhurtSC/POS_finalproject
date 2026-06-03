@@ -41,6 +41,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Product import (P2.4)
     Route::get('/products/import',  [ProductController::class, 'importForm'])->name('products.import.form');
     Route::post('/products/import', [ProductController::class, 'importCsv'])->name('products.import.csv');
+    Route::get('/products/{product}/label', [ProductController::class, 'label'])->name('products.label');
 
     // Activity logs (P3.2)
     Route::get('/logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('logs.index');

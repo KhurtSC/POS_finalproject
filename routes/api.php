@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\ProductApiController;
+use App\Http\Controllers\Api\NotificationApiController;
 use App\Http\Controllers\Api\ReportApiController;
 use App\Http\Controllers\Api\SaleApiController;
 use Illuminate\Support\Facades\Route;
@@ -32,4 +33,5 @@ Route::middleware(['web', 'auth'])->group(function () {
 
     // ── Reports ───────────────────────────────────────────────────────────────
     Route::get('/reports',          [ReportApiController::class, 'index'])->middleware('admin');
+    Route::get('/notifications',    [NotificationApiController::class, 'index']);
 });

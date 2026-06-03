@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\User;
 use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class SaleApiController extends Controller
 {
@@ -141,6 +143,8 @@ class SaleApiController extends Controller
             ],
         );
 
+        $this->sendSaleNotifications($sale->fresh(['items', 'cashier:id,name,email']));
+
         return response()->json([
             'message' => 'Sale created successfully.',
             'sale_id' => $sale->id,
@@ -208,5 +212,49 @@ class SaleApiController extends Controller
         );
 
         return response()->json(['message' => 'Sale voided successfully.']);
+    }
+
+    private function sendSaleNotifications(Sale $sale): void
+    {
+        $admins = User::where('role', 'admin')->pluck('email')->filter()->all();
+
+        if (empty($admins)) {
+            return;
+        }
+
+        try {
+            Mail::raw(
+                "Sale {$sale->reference} was completed by {$sale->cashier?->name}.\n\n" .
+                "Total: PHP " . number_format((float) $sale->total_amount, 2) . "\n" .
+                "Payment method: {$sale->payment_method}\n" .
+                "Items: {$sale->items->sum('quantity')}",
+                fn ($message) => $message
+                    ->to($admins)
+                    ->subject("PointSale sale completed: {$sale->reference}")
+            );
+
+            $lowStockItems = $sale->items
+                ->map(fn ($item) => Product::find($item->product_id))
+                ->filter(fn (?Product $product) => $product && $product->stock <= $product->low_stock_threshold);
+
+            if ($lowStockItems->isNotEmpty()) {
+                $body = $lowStockItems
+                    ->map(fn (Product $product) => "{$product->name} ({$product->sku}) has {$product->stock} left.")
+                    ->implode("\n");
+
+                Mail::raw(
+                    "Low-stock alert after sale {$sale->reference}:\n\n{$body}",
+                    fn ($message) => $message
+                        ->to($admins)
+                        ->subject('PointSale low-stock alert')
+                );
+            }
+        } catch (\Throwable $exception) {
+            ActivityLogger::log(
+                event: 'email.failed',
+                description: 'Email notification could not be sent: ' . $exception->getMessage(),
+                subject: $sale,
+            );
+        }
     }
 }
