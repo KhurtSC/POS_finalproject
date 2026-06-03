@@ -11,8 +11,8 @@
                 </select>
             </div>
 
-            {{-- Product grid --}}
-            <div data-product-grid class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {{-- Product grid (Populated by JavaScript) --}}
+            <div data-product-grid class="grid min-h-[500px] gap-4 sm:grid-cols-2 lg:grid-cols-3 content-start">
                 @foreach ($products ?? [] as $product)
                     <button type="button"
                         class="product-card overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md"

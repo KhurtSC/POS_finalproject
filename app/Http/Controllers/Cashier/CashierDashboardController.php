@@ -10,15 +10,13 @@ class CashierDashboardController extends Controller
 {
     public function index()
     {
-        $products = Product::with('category:id,name')
-            ->available()
-            ->orderBy('name')
-            ->get();
-
+        // We removed the $products query entirely.
+        // It will be fetched via JS from the API instead.
+        
         $categories = Category::active()
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return view('cashier.dashboard', compact('products', 'categories'));
+        return view('cashier.dashboard', compact('categories'));
     }
 }

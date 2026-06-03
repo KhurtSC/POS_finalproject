@@ -3,17 +3,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!root) return;
 
     // ── VAT Setup ─────────────────────────────────────────────────────────────
-    // Philippine standard: selling prices are VAT-INCLUSIVE.
-    // A product priced at ₱150 already contains VAT.
-    // Back-calculate: VAT portion = total × 12/112, net = total × 100/112.
     const VAT_RATE    = 0.12;
-    const VAT_DIVISOR = 1 + VAT_RATE; // 1.12
+    const VAT_DIVISOR = 1 + VAT_RATE;
 
     const vatOf = (inclusive) => parseFloat((inclusive * VAT_RATE / VAT_DIVISOR).toFixed(2));
     const netOf = (inclusive) => parseFloat((inclusive / VAT_DIVISOR).toFixed(2));
 
     // ── State ─────────────────────────────────────────────────────────────────
     const cart = new Map();
+    let allProducts = []; // Will hold the JSON from the API
 
     // ── Pagination state ──────────────────────────────────────────────────────
     const PAGE_SIZE    = 6;
@@ -22,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── DOM refs ──────────────────────────────────────────────────────────────
     const search      = root.querySelector('[data-product-search]');
     const category    = root.querySelector('[data-category-filter]');
-    const cards       = [...root.querySelectorAll('.product-card')];
     const grid        = root.querySelector('[data-product-grid]');
     const itemsEl     = root.querySelector('[data-cart-items]');
     const subtotalEl  = root.querySelector('[data-subtotal]');
@@ -32,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextBtn     = root.querySelector('[data-next-page]');
     const pageInfo    = root.querySelector('[data-page-info]');
 
-    // Modal refs
     const modal         = document.querySelector('[data-checkout-modal]');
     const modalSubtotal = modal.querySelector('[data-modal-subtotal]');
     const modalDiscount = modal.querySelector('[data-modal-discount]');
@@ -69,41 +65,79 @@ document.addEventListener('DOMContentLoaded', () => {
         return { percent: 0, amount: val };
     }
 
-    // ── Pagination ────────────────────────────────────────────────────────────
+    // ── Fetch Data ────────────────────────────────────────────────────────────
+    async function loadProducts() {
+        grid.innerHTML = '<div class="col-span-full py-10 text-center text-slate-400 font-bold">Loading POS...</div>';
+        try {
+            const res = await fetch('/api/products');
+            allProducts = await res.json();
+            renderPage();
+        } catch (err) {
+            grid.innerHTML = '<div class="col-span-full py-10 text-center text-red-500 font-bold">Failed to load products. Refresh the page.</div>';
+        }
+    }
 
-    // Returns only the cards that pass the current search + category filter
-    function getVisibleCards() {
-        const term     = search.value.trim().toLowerCase();
+    // ── Pagination & Grid Render ──────────────────────────────────────────────
+    function getVisibleProducts() {
+        const term = search.value.trim().toLowerCase();
         const selected = category.value;
-        return cards.filter(card => {
-            const matchesTerm     = card.dataset.name.toLowerCase().includes(term);
-            const matchesCategory = !selected || card.dataset.category === selected;
+        return allProducts.filter(p => {
+            const matchesTerm = p.name.toLowerCase().includes(term) || (p.sku && p.sku.toLowerCase().includes(term));
+            const matchesCategory = !selected || String(p.category_id) === selected;
             return matchesTerm && matchesCategory;
         });
     }
 
     function renderPage() {
-        const visible    = getVisibleCards();
+        const visible = getVisibleProducts();
         const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
-
-        // Clamp currentPage in case filters shrink the result set
+        
         if (currentPage > totalPages) currentPage = totalPages;
 
         const start = (currentPage - 1) * PAGE_SIZE;
-        const end   = start + PAGE_SIZE;
+        const end = start + PAGE_SIZE;
+        const pageProducts = visible.slice(start, end);
 
-        // Show/hide each card based on whether it's in the current page slice
-        cards.forEach(card => card.style.display = 'none');
-        visible.slice(start, end).forEach(card => card.style.display = '');
+        grid.innerHTML = pageProducts.map(product => {
+            const imgHtml = product.image 
+                ? `<img src="/storage/${product.image}" alt="${product.name}" class="h-40 w-full object-cover" loading="lazy">`
+                : `<div class="flex h-40 w-full items-center justify-center bg-slate-100 text-3xl">☕</div>`;
+            
+            const lowStockHtml = product.stock <= product.low_stock_threshold
+                ? `<span class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600">Low Stock</span>`
+                : ``;
 
-        // Update pagination controls
+            return `
+                <button type="button"
+                    class="product-card overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md"
+                    data-id="${product.id}"
+                    data-name="${product.name}"
+                    data-price="${product.price}">
+                    ${imgHtml}
+                    <div class="p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h2 class="font-black text-slate-950">${product.name}</h2>
+                                <p class="text-sm font-semibold text-slate-500">${product.category?.name || 'Uncategorized'}</p>
+                            </div>
+                            <p class="font-black text-teal-600">₱${Number(product.price).toFixed(2)}</p>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between">
+                            <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Stock ${product.stock}</p>
+                            ${lowStockHtml}
+                        </div>
+                    </div>
+                </button>
+            `;
+        }).join('');
+
         if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
         if (prevBtn)  prevBtn.disabled = currentPage <= 1;
         if (nextBtn)  nextBtn.disabled = currentPage >= totalPages;
     }
 
     function filterProducts() {
-        currentPage = 1; // reset to first page on every filter/search change
+        currentPage = 1;
         renderPage();
     }
 
@@ -249,19 +283,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Event listeners ───────────────────────────────────────────────────────
-    cards.forEach((card) => {
-        card.addEventListener('click', () => {
-            const key  = card.dataset.name;
-            const item = cart.get(key) || {
-                name:       card.dataset.name,
-                price:      Number(card.dataset.price),
-                qty:        0,
-                product_id: Number(card.dataset.id),
-            };
-            item.qty += 1;
-            cart.set(key, item);
-            renderCart();
-        });
+    grid.addEventListener('click', (event) => {
+        const card = event.target.closest('.product-card');
+        if (!card) return;
+
+        const key  = card.dataset.name;
+        const item = cart.get(key) || {
+            name:       card.dataset.name,
+            price:      Number(card.dataset.price),
+            qty:        0,
+            product_id: Number(card.dataset.id),
+        };
+        item.qty += 1;
+        cart.set(key, item);
+        renderCart();
     });
 
     itemsEl.addEventListener('click', (event) => {
@@ -304,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nextBtn) nextBtn.addEventListener('click', () => { currentPage++; renderPage(); });
 
     // ── Init ──────────────────────────────────────────────────────────────────
-    renderPage();
+    loadProducts();
     renderCart();
     toggleCashSection();
 });
