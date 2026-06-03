@@ -5,10 +5,10 @@
             <input name="search" value="{{ request('search') }}"
                    placeholder="Search products"
                    class="rounded-md border border-slate-300 px-4 py-2 text-sm">
-            <select name="category" class="rounded-md border border-slate-300 px-4 py-2 text-sm">
+            <select name="category_id" class="rounded-md border border-slate-300 px-4 py-2 text-sm">
                 <option value="">All categories</option>
                 @foreach ($categories ?? [] as $cat)
-                    <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
+                    <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
                         {{ $cat->name }}
                     </option>
                 @endforeach
@@ -85,7 +85,9 @@
                                 @endif
                             </td>
                             <td class="px-5 py-4">
-                                <a class="font-bold text-teal-600 hover:underline"
+                                <a class="font-bold text-slate-600 hover:underline dark:text-slate-300"
+                                   href="{{ route('admin.products.label', $product) }}">QR Label</a>
+                                <a class="ml-3 font-bold text-teal-600 hover:underline"
                                    href="{{ route('admin.products.edit', $product) }}">Edit</a>
                                 <form method="POST" action="{{ route('admin.products.destroy', $product) }}"
                                       class="inline" onsubmit="return confirm('Delete this product?')">
