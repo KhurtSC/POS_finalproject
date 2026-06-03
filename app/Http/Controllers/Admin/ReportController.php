@@ -92,16 +92,7 @@ class ReportController extends Controller
         $from = $request->get('from', now()->startOfMonth()->toDateString());
         $to   = $request->get('to',   now()->toDateString());
 
-        if (!class_exists(\Maatwebsite\Excel\Facades\Excel::class)) {
-            // Graceful fallback if package not installed
-            return redirect()->route('admin.reports.export.csv', ['from' => $from, 'to' => $to])
-                ->with('warning', 'Excel export requires maatwebsite/excel. Falling back to CSV.');
-        }
-
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\ReportExport($from, $to),
-            "report_{$from}_to_{$to}.xlsx"
-        );
+        return (new \App\Exports\ReportExport($from, $to))->download();
     }
 
     // ── P2.3 — PDF Export ─────────────────────────────────────────────────────
