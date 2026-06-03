@@ -333,6 +333,37 @@ document.addEventListener('DOMContentLoaded', () => {
     discountType.addEventListener('change',  updateChange);
     confirmBtn.addEventListener('click', submitSale);
     search.addEventListener('input', filterProducts);
+    // Barcode Scanner Auto-Add Logic
+    search.addEventListener('keydown', (event) => {
+        // Barcode scanners automatically fire an "Enter" key after scanning
+        if (event.key === 'Enter') {
+            event.preventDefault(); 
+            
+            // Get whatever products are currently filtered on the screen
+            const visibleProducts = getVisibleProducts();
+            
+            // If the barcode matched exactly ONE product, add it to the cart
+            if (visibleProducts.length === 1) {
+                const product = visibleProducts[0];
+                const key = product.name;
+                
+                const item = cart.get(key) || {
+                    name:       product.name,
+                    price:      Number(product.price),
+                    qty:        0,
+                    product_id: Number(product.id),
+                };
+                
+                item.qty += 1;
+                cart.set(key, item);
+                renderCart();
+                
+                // Clear the search bar instantly so they can scan the next item
+                search.value = '';
+                filterProducts();
+            }
+        }
+    });
     category.addEventListener('change', filterProducts);
 
     if (prevBtn) prevBtn.addEventListener('click', () => { currentPage--; renderPage(); });
