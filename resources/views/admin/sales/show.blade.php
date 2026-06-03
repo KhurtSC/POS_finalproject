@@ -83,7 +83,7 @@
         </section>
 
         {{-- Totals --}}
-        <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                     <span class="text-slate-500">Subtotal</span>
@@ -115,6 +115,75 @@
                 @endif
             </div>
         </div>
+
+        {{-- P3.1 — Void button (only shown for completed sales) --}}
+        @if (!$sale->isVoided())
+        <div class="rounded-lg border border-red-200 bg-red-50 p-5">
+            <h2 class="font-black text-red-800 mb-1">Void This Sale</h2>
+            <p class="text-sm text-red-600 mb-4">
+                Voiding will reverse all stock deductions. This action cannot be undone.
+            </p>
+            <form id="void-form" class="space-y-3">
+                @csrf
+                <textarea id="void-reason"
+                          placeholder="Reason for voiding (required)"
+                          rows="2"
+                          class="w-full rounded-md border border-red-300 px-3 py-2 text-sm
+                                 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200"
+                          required></textarea>
+                <button type="submit"
+                        id="void-btn"
+                        class="rounded-md bg-red-600 px-5 py-2 text-sm font-bold text-white hover:bg-red-700">
+                    Confirm Void
+                </button>
+            </form>
+        </div>
+
+        <script>
+        document.getElementById('void-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const reason = document.getElementById('void-reason').value.trim();
+            if (!reason) {
+                alert('Please enter a reason for voiding.');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to void sale {{ $sale->reference }}? This cannot be undone.')) {
+                return;
+            }
+
+            const btn = document.getElementById('void-btn');
+            btn.disabled = true;
+            btn.textContent = 'Processing…';
+
+            try {
+                const response = await fetch('/api/sales/{{ $sale->id }}/void', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ reason }),
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const err = await response.json().catch(() => ({}));
+                    alert(err.message || 'Failed to void sale. Please try again.');
+                    btn.disabled = false;
+                    btn.textContent = 'Confirm Void';
+                }
+            } catch {
+                alert('Network error. Please check your connection.');
+                btn.disabled = false;
+                btn.textContent = 'Confirm Void';
+            }
+        });
+        </script>
+        @endif
 
     </div>
 </x-layout>

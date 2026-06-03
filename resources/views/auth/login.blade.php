@@ -60,7 +60,6 @@
                 </label>
                 <button class="w-full rounded-md bg-teal-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-teal-500/20 hover:bg-teal-600">Login</button>
             </form>
-                <p class="mt-6 text-center text-sm font-semibold text-slate-500">Need an account? <a href="{{ route('register') }}" class="font-black text-teal-600 hover:text-teal-700">Register user</a></p>
             </div>
         </section>
     </main>

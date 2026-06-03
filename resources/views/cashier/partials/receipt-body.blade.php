@@ -18,9 +18,19 @@
     </div>
 
     {{-- Totals --}}
+    @php
+        // VAT-inclusive pricing (Philippine standard under TRAIN Law).
+        // total_amount already contains VAT — we back-calculate the breakdown.
+        $vatBase    = $sale->total_amount;          // VAT-inclusive total after discount
+        $vatAmount  = round($vatBase * 12 / 112, 2);
+        $vatExcl    = round($vatBase - $vatAmount, 2);
+    @endphp
+
     <div class="space-y-1 text-sm">
+
+        {{-- Gross subtotal (VAT-inclusive, before discount) --}}
         <div class="flex justify-between text-slate-600">
-            <span>Subtotal</span>
+            <span>Subtotal (VAT incl.)</span>
             <span>&#8369;{{ number_format($sale->subtotal, 2) }}</span>
         </div>
 
@@ -36,13 +46,26 @@
             </div>
         @endif
 
+        {{-- Total line (what the customer pays) --}}
         <div class="flex justify-between border-t border-slate-200 pt-2 text-lg font-black">
             <span>Total</span>
             <span>&#8369;{{ number_format($sale->total_amount, 2) }}</span>
         </div>
 
+        {{-- VAT breakdown (back-calculated from the VAT-inclusive total) --}}
+        <div class="mt-2 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500 space-y-1">
+            <div class="flex justify-between">
+                <span>VAT-exclusive amount</span>
+                <span>&#8369;{{ number_format($vatExcl, 2) }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>VAT 12% (included)</span>
+                <span>&#8369;{{ number_format($vatAmount, 2) }}</span>
+            </div>
+        </div>
+
         @if ($sale->payment_method === 'cash')
-            <div class="flex justify-between text-slate-600">
+            <div class="flex justify-between text-slate-600 mt-2">
                 <span>Cash Tendered</span>
                 <span>&#8369;{{ number_format($sale->amount_tendered, 2) }}</span>
             </div>
@@ -52,7 +75,7 @@
             </div>
         @endif
 
-        <div class="flex justify-between text-slate-500">
+        <div class="flex justify-between text-slate-500 mt-1">
             <span>Payment</span>
             <span class="capitalize">{{ $sale->payment_method }}</span>
         </div>

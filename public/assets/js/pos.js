@@ -2,51 +2,63 @@ document.addEventListener('DOMContentLoaded', () => {
     const root = document.querySelector('[data-pos]');
     if (!root) return;
 
+    // ── VAT Setup ─────────────────────────────────────────────────────────────
+    // Philippine standard: selling prices are VAT-INCLUSIVE.
+    // A product priced at ₱150 already contains VAT.
+    // Back-calculate: VAT portion = total × 12/112, net = total × 100/112.
+    // The stored total_amount in the DB is always the full VAT-inclusive price —
+    // no schema changes needed. We're just displaying the breakdown correctly.
+    const VAT_RATE    = 0.12;
+    const VAT_DIVISOR = 1 + VAT_RATE; // 1.12
+
+    const vatOf = (inclusive) => parseFloat((inclusive * VAT_RATE / VAT_DIVISOR).toFixed(2));
+    const netOf = (inclusive) => parseFloat((inclusive / VAT_DIVISOR).toFixed(2));
+
     // ── State ────────────────────────────────────────────────────────────────
-    const cart    = new Map();
-    const taxRate = 0.12;
+    const cart = new Map();
 
     // ── DOM refs ─────────────────────────────────────────────────────────────
-    const search      = root.querySelector('[data-product-search]');
-    const category    = root.querySelector('[data-category-filter]');
-    const cards       = [...root.querySelectorAll('.product-card')];
-    const itemsEl     = root.querySelector('[data-cart-items]');
-    const subtotalEl  = root.querySelector('[data-subtotal]');
-    const taxEl       = root.querySelector('[data-tax]');
-    const totalEl     = root.querySelector('[data-grand-total]');
+    const search     = root.querySelector('[data-product-search]');
+    const category   = root.querySelector('[data-category-filter]');
+    const cards      = [...root.querySelectorAll('.product-card')];
+    const itemsEl    = root.querySelector('[data-cart-items]');
+    const subtotalEl = root.querySelector('[data-subtotal]');    // VAT-exclusive net
+    const taxEl      = root.querySelector('[data-tax]');          // VAT portion
+    const totalEl    = root.querySelector('[data-grand-total]');  // VAT-inclusive total
 
     // Modal refs
-    const modal           = document.querySelector('[data-checkout-modal]');
-    const modalSubtotal   = modal.querySelector('[data-modal-subtotal]');
-    const modalDiscount   = modal.querySelector('[data-modal-discount]');
-    const modalTotal      = modal.querySelector('[data-modal-total]');
-    const discountRow     = modal.querySelector('[data-discount-row]');
-    const discountInput   = modal.querySelector('[data-discount-input]');
-    const discountType    = modal.querySelector('[data-discount-type]');
-    const cashSection     = modal.querySelector('[data-cash-section]');
-    const tenderedInput   = modal.querySelector('[data-tendered-input]');
-    const changeDisplay   = modal.querySelector('[data-change-display]');
-    const cancelBtn       = modal.querySelector('[data-modal-cancel]');
-    const confirmBtn      = modal.querySelector('[data-modal-confirm]');
+    const modal         = document.querySelector('[data-checkout-modal]');
+    const modalSubtotal = modal.querySelector('[data-modal-subtotal]');
+    const modalDiscount = modal.querySelector('[data-modal-discount]');
+    const modalTotal    = modal.querySelector('[data-modal-total]');
+    const discountRow   = modal.querySelector('[data-discount-row]');
+    const discountInput = modal.querySelector('[data-discount-input]');
+    const discountType  = modal.querySelector('[data-discount-type]');
+    const cashSection   = modal.querySelector('[data-cash-section]');
+    const tenderedInput = modal.querySelector('[data-tendered-input]');
+    const changeDisplay = modal.querySelector('[data-change-display]');
+    const cancelBtn     = modal.querySelector('[data-modal-cancel]');
+    const confirmBtn    = modal.querySelector('[data-modal-confirm]');
 
     // ── Helpers ──────────────────────────────────────────────────────────────
-    const money    = (v) => `₱${Number(v).toFixed(2)}`;
-    const getTotal = () => {
-        let subtotal = 0;
-        cart.forEach(item => subtotal += item.price * item.qty);
-        return subtotal;
+    const money = (v) => `₱${Number(v).toFixed(2)}`;
+
+    const getGrossTotal = () => {
+        let total = 0;
+        cart.forEach(item => total += item.price * item.qty);
+        return total;
     };
 
     function selectedPaymentMethod() {
         return modal.querySelector('input[name="payment_method"]:checked')?.value || 'cash';
     }
 
-    function computeDiscount(subtotal) {
+    function computeDiscount(grossTotal) {
         const val  = parseFloat(discountInput.value) || 0;
         const type = discountType.value;
         if (val <= 0) return { amount: 0, percent: 0 };
         if (type === 'percent') {
-            return { percent: val, amount: parseFloat((subtotal * val / 100).toFixed(2)) };
+            return { percent: val, amount: parseFloat((grossTotal * val / 100).toFixed(2)) };
         }
         return { percent: 0, amount: val };
     }
@@ -54,17 +66,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Cart render ──────────────────────────────────────────────────────────
     function renderCart() {
         itemsEl.innerHTML = '';
-        let subtotal = 0;
+        let grossTotal = 0;
 
         cart.forEach((item, key) => {
-            subtotal += item.price * item.qty;
+            grossTotal += item.price * item.qty;
             const row = document.createElement('div');
             row.className = 'p-4';
             row.innerHTML = `
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <p class="font-black text-slate-950">${item.name}</p>
-                        <p class="text-sm font-semibold text-slate-500">${money(item.price)} each</p>
+                        <p class="text-sm font-semibold text-slate-500">${money(item.price)} each (VAT incl.)</p>
                     </div>
                     <button class="font-bold text-red-600" data-remove="${key}">Remove</button>
                 </div>
@@ -83,10 +95,13 @@ document.addEventListener('DOMContentLoaded', () => {
             itemsEl.innerHTML = '<div class="p-5 text-sm font-semibold text-slate-500">No items in cart yet.</div>';
         }
 
-        const tax = subtotal * taxRate;
-        subtotalEl.textContent = money(subtotal);
-        taxEl.textContent      = money(tax);
-        totalEl.textContent    = money(subtotal + tax);
+        // Back-calculate VAT from the gross VAT-inclusive total
+        const vatAmount = vatOf(grossTotal);
+        const netAmount = netOf(grossTotal);
+
+        subtotalEl.textContent = money(netAmount);   // ex-VAT net shown as "Subtotal"
+        if (taxEl) taxEl.textContent = money(vatAmount);  // VAT 12% portion
+        totalEl.textContent    = money(grossTotal);  // what customer pays = what DB stores
     }
 
     // ── Product filter ───────────────────────────────────────────────────────
@@ -102,11 +117,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Modal helpers ────────────────────────────────────────────────────────
     function openModal() {
-        const subtotal         = getTotal();
-        const { amount, percent } = computeDiscount(subtotal);
-        const total            = Math.max(0, subtotal - amount);
+        const gross               = getGrossTotal();
+        const { amount, percent } = computeDiscount(gross);
+        const total               = Math.max(0, gross - amount);
 
-        modalSubtotal.textContent = money(subtotal);
+        modalSubtotal.textContent = money(gross);
         modalTotal.textContent    = money(total);
 
         if (amount > 0) {
@@ -127,13 +142,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateChange() {
-        const subtotal        = getTotal();
-        const { amount }      = computeDiscount(subtotal);
-        const total           = Math.max(0, subtotal - amount);
-        const tendered        = parseFloat(tenderedInput.value) || 0;
-        const change          = Math.max(0, tendered - total);
-        changeDisplay.textContent = money(change);
-
+        const gross      = getGrossTotal();
+        const { amount } = computeDiscount(gross);
+        const total      = Math.max(0, gross - amount);
+        const tendered   = parseFloat(tenderedInput.value) || 0;
+        changeDisplay.textContent = money(Math.max(0, tendered - total));
         modalTotal.textContent    = money(total);
         if (amount > 0) {
             discountRow.classList.remove('hidden');
@@ -144,17 +157,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function toggleCashSection() {
-        const isCash = selectedPaymentMethod() === 'cash';
-        cashSection.classList.toggle('hidden', !isCash);
+        cashSection.classList.toggle('hidden', selectedPaymentMethod() !== 'cash');
     }
 
     // ── Checkout submit ──────────────────────────────────────────────────────
     async function submitSale() {
-        const subtotal           = getTotal();
-        const { amount: discountAmount, percent: discountPercent } = computeDiscount(subtotal);
-        const total              = Math.max(0, subtotal - discountAmount);
-        const paymentMethod      = selectedPaymentMethod();
-        const amountTendered     = parseFloat(tenderedInput.value) || 0;
+        const gross                                                = getGrossTotal();
+        const { amount: discountAmount, percent: discountPercent } = computeDiscount(gross);
+        const total          = Math.max(0, gross - discountAmount);
+        const paymentMethod  = selectedPaymentMethod();
+        const amountTendered = parseFloat(tenderedInput.value) || 0;
 
         if (paymentMethod === 'cash' && amountTendered < total) {
             alert(`Cash tendered (${money(amountTendered)}) is less than the total (${money(total)}).`);
@@ -186,13 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(payload),
             });
 
-            if (response.status === 401) {
-                alert('Unauthenticated. Please refresh the page and log in again.');
-                confirmBtn.disabled    = false;
-                confirmBtn.textContent = 'Confirm Sale';
-                return;
-            }
-
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
                 alert(err.message || 'Checkout failed. Please try again.');
@@ -204,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             window.location.href = `/cashier/receipt/${data.sale_id}`;
 
-        } catch (error) {
+        } catch {
             alert('Network error. Please check your connection and try again.');
             confirmBtn.disabled    = false;
             confirmBtn.textContent = 'Confirm Sale';
@@ -212,8 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Event listeners ──────────────────────────────────────────────────────
-
-    // Add product to cart
     cards.forEach((card) => {
         card.addEventListener('click', () => {
             const key  = card.dataset.name;
@@ -229,90 +232,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Cart item controls
     itemsEl.addEventListener('click', (event) => {
         const button = event.target.closest('button');
         if (!button) return;
         const key  = button.dataset.increase || button.dataset.decrease || button.dataset.remove;
         const item = cart.get(key);
         if (!item) return;
-
         if (button.dataset.increase) item.qty += 1;
         if (button.dataset.decrease) item.qty -= 1;
         if (button.dataset.remove || item.qty <= 0) cart.delete(key);
         renderCart();
     });
 
-    // Clear cart
     root.querySelector('[data-clear-cart]').addEventListener('click', () => {
         cart.clear();
         renderCart();
     });
 
-    // Open modal on checkout click
     root.querySelector('[data-checkout]').addEventListener('click', () => {
-        if (!cart.size) {
-            alert('Your cart is empty.');
-            return;
-        }
+        if (!cart.size) { alert('Your cart is empty.'); return; }
         openModal();
     });
 
-    // Cancel modal
     cancelBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-    });
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-    // Toggle cash section on payment method change
     modal.querySelectorAll('input[name="payment_method"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-            toggleCashSection();
-            updateChange();
-        });
+        radio.addEventListener('change', () => { toggleCashSection(); updateChange(); });
     });
 
-    // Update change on tendered input
     tenderedInput.addEventListener('input', updateChange);
     discountInput.addEventListener('input', updateChange);
-    discountType.addEventListener('change', updateChange);
-
-    // Confirm sale
+    discountType.addEventListener('change',  updateChange);
     confirmBtn.addEventListener('click', submitSale);
-
-    // Search and filter
     search.addEventListener('input', filterProducts);
     category.addEventListener('change', filterProducts);
 
-    // ── Barcode Scanner / Search Enter Key ───────────────────────────────────
-search.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault(); 
-        const term = search.value.trim().toLowerCase();
-        
-        if (!term) return;
-
-        // Find a card that matches the barcode OR the exact product name
-        const matchedCard = cards.find(card => {
-            const barcode = (card.dataset.barcode || '').toLowerCase();
-            const name    = (card.dataset.name || '').toLowerCase();
-            return barcode === term || name === term;
-        });
-
-        if (matchedCard) {
-            // Simulate clicking the card to add it to the cart
-            matchedCard.click(); 
-            
-            // Clear the input so it's ready for the next scan
-            search.value = ''; 
-            filterProducts(); 
-        } else {
-            alert('Product not found! Please check the barcode or spelling.');
-                }
-            }
-        });
-
-    // Initial render
     renderCart();
     toggleCashSection();
 });

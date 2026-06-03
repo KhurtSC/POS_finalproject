@@ -8,12 +8,13 @@
             <div>
                 <p class="px-3 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Admin</p>
                 <div class="space-y-1">
-                    <x-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')" icon="D">Dashboard</x-nav-link>
-                    <x-nav-link href="{{ route('admin.products.index') }}" :active="request()->routeIs('admin.products.*')" icon="P">Products</x-nav-link>
+                    <x-nav-link href="{{ route('admin.dashboard') }}"        :active="request()->routeIs('admin.dashboard')"    icon="D">Dashboard</x-nav-link>
+                    <x-nav-link href="{{ route('admin.products.index') }}"   :active="request()->routeIs('admin.products.*')"   icon="P">Products</x-nav-link>
                     <x-nav-link href="{{ route('admin.categories.index') }}" :active="request()->routeIs('admin.categories.*')" icon="C">Categories</x-nav-link>
-                    <x-nav-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.*')" icon="U">Users</x-nav-link>
-                    <x-nav-link href="{{ route('admin.sales.index') }}" :active="request()->routeIs('admin.sales.*')" icon="S">Sales</x-nav-link>
-                    <x-nav-link href="{{ route('admin.reports.index') }}" :active="request()->routeIs('admin.reports.*')" icon="R">Reports</x-nav-link>
+                    <x-nav-link href="{{ route('admin.users.index') }}"      :active="request()->routeIs('admin.users.*')"      icon="U">Users</x-nav-link>
+                    <x-nav-link href="{{ route('admin.sales.index') }}"      :active="request()->routeIs('admin.sales.*')"      icon="S">Sales</x-nav-link>
+                    <x-nav-link href="{{ route('admin.reports.index') }}"    :active="request()->routeIs('admin.reports.*')"    icon="R">Reports</x-nav-link>
+                    <x-nav-link href="{{ route('admin.logs.index') }}"       :active="request()->routeIs('admin.logs.*')"       icon="L">Activity Logs</x-nav-link>
                 </div>
             </div>
         @endif
@@ -23,7 +24,7 @@
                 <p class="px-3 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Cashier</p>
                 <div class="space-y-1">
                     <x-nav-link href="{{ route('cashier.dashboard') }}" :active="request()->routeIs('cashier.dashboard')" icon="+">POS / New Sale</x-nav-link>
-                    <x-nav-link href="{{ route('cashier.cart') }}" :active="request()->routeIs('cashier.cart')" icon="C">Cart</x-nav-link>
+                    <x-nav-link href="{{ route('cashier.cart') }}"      :active="request()->routeIs('cashier.cart')"      icon="C">Cart</x-nav-link>
                 </div>
             </div>
         @endif
