@@ -8,31 +8,14 @@
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
 </head>
 <body class="min-h-screen bg-slate-950 font-sans text-slate-900">
-    <main class="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
-        <section class="hidden min-h-screen flex-col justify-between bg-slate-950 px-12 py-10 text-white lg:flex">
-            <img src="{{ asset('assets/images/brand/pointsale-logo.svg') }}" alt="Cafe POS" class="h-16 w-auto rounded-lg">
+    <main class="grid min-h-screen place-items-center px-4 py-10">
+        <div class="w-full max-w-md rounded-lg border border-slate-200 bg-white p-8 shadow-xl shadow-black/40">
 
-            <div class="max-w-xl">
-                <p class="mb-4 inline-flex rounded-full border border-teal-300/30 px-3 py-1 text-xs font-black uppercase tracking-wide text-teal-200">Fast checkout. Clean admin.</p>
-                <h1 class="text-5xl font-black leading-tight">Run sales, users, inventory, and reports from one calm dashboard.</h1>
-                <div class="mt-8 grid grid-cols-3 gap-4">
-                    <div class="rounded-lg border border-white/10 bg-white/5 p-4"><p class="text-3xl font-black text-teal-300">8s</p><p class="mt-1 text-sm font-semibold text-slate-300">Average checkout</p></div>
-                    <div class="rounded-lg border border-white/10 bg-white/5 p-4"><p class="text-3xl font-black text-teal-300">24/7</p><p class="mt-1 text-sm font-semibold text-slate-300">Sales tracking</p></div>
-                    <div class="rounded-lg border border-white/10 bg-white/5 p-4"><p class="text-3xl font-black text-teal-300">2</p><p class="mt-1 text-sm font-semibold text-slate-300">Role portals</p></div>
-                </div>
+            <div class="mb-8 flex flex-col items-center text-center">
+                <img src="{{ asset('assets/images/brand/pointsale-logo.svg') }}" alt="Cafe POS" class="mb-6 h-14 w-auto rounded-lg">
+                <p class="text-sm font-black uppercase tracking-wide text-teal-600">Welcome back</p>
+                <h1 class="mt-2 text-3xl font-black text-slate-950">Sign in to Cafe POS</h1>
             </div>
-
-            <p class="text-sm font-semibold text-slate-400">Admin and cashier access is stored securely in your Laravel users table.</p>
-        </section>
-
-        <section class="grid min-h-screen place-items-center bg-slate-100 px-4 py-10">
-            <div class="w-full max-w-md rounded-lg border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/80">
-                <div class="mb-8">
-                    <img src="{{ asset('assets/images/brand/pointsale-logo.svg') }}" alt="Cafe POS" class="mb-4 h-14 w-auto rounded-lg lg:hidden">
-                    <p class="text-sm font-black uppercase tracking-wide text-teal-600">Welcome back</p>
-                    <h1 class="mt-2 text-3xl font-black text-slate-950">Sign in to Cafe POS</h1>
-                    <p class="mt-2 text-sm font-medium text-slate-500">Use your cashier or admin account.</p>
-                </div>
 
             @if (session('error'))
                 <div class="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">{{ session('error') }}</div>
@@ -60,8 +43,8 @@
                 </label>
                 <button class="w-full rounded-md bg-teal-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-teal-500/20 hover:bg-teal-600">Login</button>
             </form>
-            </div>
-        </section>
+
+        </div>
     </main>
 </body>
 </html>

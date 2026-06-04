@@ -24,7 +24,7 @@
                 <p class="px-3 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Cashier</p>
                 <div class="space-y-1">
                     <x-nav-link href="{{ route('cashier.dashboard') }}" :active="request()->routeIs('cashier.dashboard')" icon="+">POS / New Sale</x-nav-link>
-                    <x-nav-link href="{{ route('cashier.cart') }}"      :active="request()->routeIs('cashier.cart')"      icon="C">Cart</x-nav-link>
+                
                 </div>
             </div>
         @endif
