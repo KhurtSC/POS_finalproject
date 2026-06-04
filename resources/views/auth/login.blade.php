@@ -22,7 +22,6 @@
                 </div>
             </div>
 
-            <p class="text-sm font-semibold text-slate-400">Admin and cashier access is stored securely in your Laravel users table.</p>
         </section>
 
         <section class="grid min-h-screen place-items-center bg-slate-100 px-4 py-10">
