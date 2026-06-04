@@ -1,19 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // ── Theme toggle ──────────────────────────────────────────────────────────
     const themeToggle = document.querySelector('[data-theme-toggle]');
     if (themeToggle) {
+        // Support both plain text content (old topbar) and a nested <span> (new topbar)
+        const themeLabel = themeToggle.querySelector('[data-theme-label]') || themeToggle;
+
         const syncThemeLabel = () => {
-            themeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark';
+            const isDark = document.documentElement.classList.contains('dark');
+            themeLabel.textContent = isDark ? '☀ Light' : '🌙 Dark';
         };
 
         themeToggle.addEventListener('click', () => {
             document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            localStorage.setItem(
+                'theme',
+                document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+            );
             syncThemeLabel();
         });
 
         syncThemeLabel();
     }
 
+    // ── Auto-dismiss alerts ───────────────────────────────────────────────────
     document.querySelectorAll('[data-alert]').forEach((alert) => {
         setTimeout(() => {
             alert.style.transition = 'opacity 250ms ease, transform 250ms ease';
@@ -23,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 4000);
     });
 
+    // ── Confirm dialogs ───────────────────────────────────────────────────────
     document.querySelectorAll('[data-confirm]').forEach((button) => {
         button.addEventListener('click', (event) => {
             const message = button.getAttribute('data-confirm') || 'Are you sure?';
@@ -32,18 +42,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // ── Generic modal close ───────────────────────────────────────────────────
     document.querySelectorAll('[data-close-modal]').forEach((button) => {
         button.addEventListener('click', () => button.closest('[data-modal]')?.classList.add('hidden'));
     });
 
+    // ── Notifications panel ───────────────────────────────────────────────────
     const notificationRoot = document.querySelector('[data-notifications]');
     if (notificationRoot) {
-        const toggle = notificationRoot.querySelector('[data-notification-toggle]');
-        const panel = notificationRoot.querySelector('[data-notification-panel]');
-        const list = notificationRoot.querySelector('[data-notification-list]');
+        const toggle     = notificationRoot.querySelector('[data-notification-toggle]');
+        const panel      = notificationRoot.querySelector('[data-notification-panel]');
+        const list       = notificationRoot.querySelector('[data-notification-list]');
         const countBadge = notificationRoot.querySelector('[data-notification-count]');
         let latestId = 0;
-        let unseen = 0;
+        let unseen   = 0;
 
         const renderNotifications = (notifications, append = false) => {
             if (!append) list.innerHTML = '';
@@ -71,12 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const loadNotifications = async (increment = false) => {
             try {
-                const response = await fetch(`/api/notifications${latestId ? `?after_id=${latestId}` : ''}`, {
-                    headers: { Accept: 'application/json' },
-                });
+                const url = `/api/notifications${latestId ? `?after_id=${latestId}` : ''}`;
+                const response = await fetch(url, { headers: { Accept: 'application/json' } });
                 if (!response.ok) return;
 
-                const data = await response.json();
+                const data          = await response.json();
                 const notifications = data.notifications || [];
 
                 if (notifications.length) {
@@ -112,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setInterval(() => loadNotifications(true), 15000);
     }
 
+    // ── Service worker ────────────────────────────────────────────────────────
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js').catch(() => {});
     }
