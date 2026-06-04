@@ -7,12 +7,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
 </head>
-<body class="min-h-screen bg-slate-100 font-sans text-slate-900">
+<body class="min-h-screen bg-slate-950 font-sans text-slate-900">
     <main class="grid min-h-screen place-items-center px-4 py-10">
-        <div class="w-full max-w-md rounded-lg border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/80">
+        <div class="w-full max-w-md rounded-lg border border-slate-200 bg-white p-8 shadow-xl shadow-black/40">
 
-            <div class="mb-8">
-                <img src="{{ asset('assets/images/brand/pointsale-logo.svg') }}" alt="Cafe POS" class="mb-4 h-14 w-auto rounded-lg">
+            <div class="mb-8 flex flex-col items-center text-center">
+                <img src="{{ asset('assets/images/brand/pointsale-logo.svg') }}" alt="Cafe POS" class="mb-6 h-14 w-auto rounded-lg">
                 <p class="text-sm font-black uppercase tracking-wide text-teal-600">Welcome back</p>
                 <h1 class="mt-2 text-3xl font-black text-slate-950">Sign in to Cafe POS</h1>
             </div>
