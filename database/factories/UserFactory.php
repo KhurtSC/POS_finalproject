@@ -1,4 +1,4 @@
-copy .env.example .env<?php
+<?php
 
 namespace Database\Factories;
 
