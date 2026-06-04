@@ -6,22 +6,25 @@
         </div>
         <div class="flex items-center gap-3">
             @auth
-                <div class="relative" data-notifications>
-                    <button type="button" data-notification-toggle
-                        class="relative rounded-md border border-slate-200 px-3 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
-                        Alerts
-                        <span data-notification-count class="absolute -right-2 -top-2 hidden min-w-5 rounded-full bg-red-500 px-1.5 py-0.5 text-center text-[10px] font-black text-white">0</span>
-                    </button>
-                    <div data-notification-panel class="absolute right-0 mt-2 hidden w-80 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
-                        <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
-                            <p class="text-sm font-black text-slate-950 dark:text-white">Live Notifications</p>
-                            <p class="text-xs font-semibold text-slate-500">Recent sales, products, and system activity</p>
-                        </div>
-                        <div data-notification-list class="max-h-80 overflow-y-auto p-2 text-sm">
-                            <p class="p-3 text-sm font-semibold text-slate-500">Loading notifications...</p>
+                @if(auth()->user()->role === 'admin')
+                    <div class="relative" data-notifications>
+                        <button type="button" data-notification-toggle
+                            class="relative rounded-md border border-slate-200 px-3 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                            Alerts
+                            <span data-notification-count class="absolute -right-2 -top-2 hidden min-w-5 rounded-full bg-red-500 px-1.5 py-0.5 text-center text-[10px] font-black text-white">0</span>
+                        </button>
+                        <div data-notification-panel class="absolute right-0 mt-2 hidden w-80 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                            <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+                                <p class="text-sm font-black text-slate-950 dark:text-white">Live Notifications</p>
+                                <p class="text-xs font-semibold text-slate-500">Recent sales, products, and system activity</p>
+                            </div>
+                            <div data-notification-list class="max-h-80 overflow-y-auto p-2 text-sm">
+                                <p class="p-3 text-sm font-semibold text-slate-500">Loading notifications...</p>
+                            </div>
                         </div>
                     </div>
-                </div>
+                @endif
+
 
                 <button type="button" data-theme-toggle
                     class="rounded-md border border-slate-200 px-3 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">

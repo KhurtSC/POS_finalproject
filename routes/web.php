@@ -53,7 +53,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
 Route::prefix('cashier')->name('cashier.')->middleware(['auth', 'cashier'])->group(function () {
     Route::get('/dashboard', [CashierDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/cart', [CartController::class, 'index'])->name('cart');
+    
     Route::get('/receipt/{sale}', [CartController::class, 'receipt'])->name('receipt');
     
     // Add your checkout route here!

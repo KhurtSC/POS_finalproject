@@ -97,7 +97,6 @@ database/migrations/2026_06_02_000004_create_sales_table.php
 database/migrations/2026_06_02_000005_create_sale_items_table.php
 database/migrations/2026_06_02_100000_add_role_to_users_table.php
 database/migrations/2026_06_02_200000_create_activity_logs_table.php
-database/seeders/AdminSeeder.php
 database/seeders/DatabaseSeeder.php
 docker/nginx.conf
 docker/start.sh
@@ -4316,78 +4315,6 @@ class SaleItem extends Model
 }
 </file>
 
-<file path="bootstrap/app.php">
-<?php
-
-use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Configuration\Exceptions;
-use Illuminate\Foundation\Configuration\Middleware;
-use App\Http\Middleware\AdminMiddleware;
-use App\Http\Middleware\CashierMiddleware;
-
-return Application::configure(basePath: dirname(__DIR__))
-    ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
-        health: '/up',
-    )
-    ->withMiddleware(function (Middleware $middleware) {
-    $middleware->trustProxies(at: '*');
-})
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })->create();
-</file>
-
-<file path="database/factories/UserFactory.php">
-copy .env.example .env<?php
-
-namespace Database\Factories;
-
-use App\Models\User;
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-
-/**
- * @extends Factory<User>
- */
-class UserFactory extends Factory
-{
-    /**
-     * The current password being used by the factory.
-     */
-    protected static string $password;
-
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
-    public function definition(): array
-    {
-        return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
-        ];
-    }
-
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
-    }
-}
-</file>
-
 <file path="database/migrations/2026_06_02_000002_create_categories_table.php">
 <?php
 
@@ -4527,31 +4454,6 @@ return new class extends Migration {
         Schema::dropIfExists('sale_items');
     }
 };
-</file>
-
-<file path="database/seeders/AdminSeeder.php">
-<?php
-
-namespace Database\Seeders;
-
-use Illuminate\Database\Seeder;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-
-class AdminSeeder extends Seeder
-{
-    public function run(): void
-    {
-        User::firstOrCreate(
-            ['email' => 'admin@example.com'],
-            [
-                'name' => 'Admin',
-                'password' => Hash::make('yourpassword'),
-                'role' => 'admin',
-            ]
-        );
-    }
-}
 </file>
 
 <file path="public/assets/css/app.css">
@@ -5691,17 +5593,80 @@ class CashierDashboardController extends Controller
 }
 </file>
 
-<file path="docker/start.sh">
-#!/bin/sh
-set -e
-php-fpm -D
-sleep 2
-php artisan migrate --force
-php artisan db:seed --force
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-nginx -g 'daemon off;'
+<file path="bootstrap/app.php">
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\CashierMiddleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+    $middleware->trustProxies(at: '*');
+    $middleware->alias([
+        'admin'   => \App\Http\Middleware\AdminMiddleware::class,
+        'cashier' => \App\Http\Middleware\CashierMiddleware::class,
+    ]);
+})
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    })->create();
+</file>
+
+<file path="database/factories/UserFactory.php">
+<?php
+
+namespace Database\Factories;
+
+use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
+/**
+ * @extends Factory<User>
+ */
+class UserFactory extends Factory
+{
+    /**
+     * The current password being used by the factory.
+     */
+    protected static string $password;
+
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'name' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
+            'email_verified_at' => now(),
+            'password' => static::$password ??= Hash::make('password'),
+            'remember_token' => Str::random(10),
+        ];
+    }
+
+    /**
+     * Indicate that the model's email address should be unverified.
+     */
+    public function unverified(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => null,
+        ]);
+    }
+}
 </file>
 
 <file path="resources/views/admin/products/index.blade.php">
@@ -6614,6 +6579,219 @@ class ProductController extends Controller
 }
 </file>
 
+<file path="docker/start.sh">
+#!/bin/sh
+set -e
+
+php-fpm -D
+sleep 2
+
+php artisan migrate --force
+php artisan db:seed --force
+php artisan storage:link
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+nginx -g 'daemon off;'
+</file>
+
+<file path="routes/api.php">
+<?php
+
+use App\Http\Controllers\Api\ProductApiController;
+use App\Http\Controllers\Api\NotificationApiController;
+use App\Http\Controllers\Api\ReportApiController;
+use App\Http\Controllers\Api\SaleApiController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+| All routes below require an authenticated session (web guard) so that
+| the same cookie-based auth used by the Blade views protects the API.
+| The POS frontend is served from the same origin, so this is the right
+| guard to use — no token management needed on the client side.
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['web', 'auth'])->group(function () {
+
+    // ── Products ─────────────────────────────────────────────────────────────
+    Route::get('/products',         [ProductApiController::class, 'index']);
+    Route::post('/products',        [ProductApiController::class, 'store'])->middleware('admin');
+    Route::put('/products/{id}',    [ProductApiController::class, 'update'])->middleware('admin');
+    Route::delete('/products/{id}', [ProductApiController::class, 'destroy'])->middleware('admin');
+
+    // ── Sales ─────────────────────────────────────────────────────────────────
+    Route::post('/sales',           [SaleApiController::class, 'store'])->middleware('cashier');
+    Route::get('/sales',            [SaleApiController::class, 'index'])->middleware('admin');
+    Route::get('/sales/{id}',       [SaleApiController::class, 'show']);
+    Route::post('/sales/{id}/void', [SaleApiController::class, 'void'])->middleware('admin');
+
+    // ── Reports ───────────────────────────────────────────────────────────────
+    Route::get('/reports',          [ReportApiController::class, 'index'])->middleware('admin');
+    Route::get('/notifications',    [NotificationApiController::class, 'index']);
+});
+</file>
+
+<file path="app/Http/Controllers/Admin/ReportController.php">
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Sale;
+use App\Models\SaleItem;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\View\View;
+
+class ReportController extends Controller
+{
+    public function index(Request $request): View
+    {
+        $from = $request->filled('from') ? $request->from : now()->startOfMonth()->toDateString();
+        $to   = $request->filled('to')   ? $request->to   : now()->toDateString();
+
+        [$totalSales, $totalRevenue, $topProducts, $dailyBreakdown] = $this->buildReportData($from, $to);
+
+        $bestProduct = $topProducts->first()?->product_name ?? '—';
+
+        return view('admin.reports.index', compact(
+            'totalSales',
+            'totalRevenue',
+            'topProducts',
+            'dailyBreakdown',
+            'bestProduct',
+            'from',
+            'to',
+        ));
+    }
+
+    // ── P2.1 — CSV Export ─────────────────────────────────────────────────────
+
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $from = $request->get('from', now()->startOfMonth()->toDateString());
+        $to   = $request->get('to',   now()->toDateString());
+
+        [$totalSales, $totalRevenue, $topProducts, $dailyBreakdown] = $this->buildReportData($from, $to);
+
+        $filename = "report_{$from}_to_{$to}.csv";
+
+        return response()->streamDownload(function () use ($from, $to, $totalSales, $totalRevenue, $topProducts, $dailyBreakdown) {
+            $handle = fopen('php://output', 'w');
+
+            // Summary section
+            fputcsv($handle, ['PointSale — Sales Report']);
+            fputcsv($handle, ['Period', "{$from} to {$to}"]);
+            fputcsv($handle, ['Total Transactions', $totalSales]);
+            fputcsv($handle, ['Total Revenue', number_format($totalRevenue, 2)]);
+            fputcsv($handle, []);
+
+            // Top products
+            fputcsv($handle, ['Top 5 Products']);
+            fputcsv($handle, ['Rank', 'Product', 'Units Sold', 'Revenue']);
+            foreach ($topProducts as $i => $item) {
+                fputcsv($handle, [
+                    $i + 1,
+                    $item->product_name,
+                    $item->total_qty,
+                    number_format($item->total_revenue, 2),
+                ]);
+            }
+            fputcsv($handle, []);
+
+            // Daily breakdown
+            fputcsv($handle, ['Daily Breakdown']);
+            fputcsv($handle, ['Date', 'Transactions', 'Revenue']);
+            foreach ($dailyBreakdown as $row) {
+                fputcsv($handle, [
+                    $row->date,
+                    $row->transactions,
+                    number_format($row->revenue, 2),
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+
+    // ── P2.2 — XLSX Export ────────────────────────────────────────────────────
+    // Requires: composer require maatwebsite/excel
+    // If the package is not installed, this falls back to CSV download.
+
+    public function exportXlsx(Request $request)
+    {
+        $from = $request->get('from', now()->startOfMonth()->toDateString());
+        $to   = $request->get('to',   now()->toDateString());
+
+        return (new \App\Exports\ReportExport($from, $to))->download();
+    }
+
+    // ── P2.3 — PDF Export ─────────────────────────────────────────────────────
+    // Requires: composer require barryvdh/laravel-dompdf
+
+    public function exportPdf(Request $request)
+    {
+        $from = $request->get('from', now()->startOfMonth()->toDateString());
+        $to   = $request->get('to',   now()->toDateString());
+
+        [$totalSales, $totalRevenue, $topProducts, $dailyBreakdown] = $this->buildReportData($from, $to);
+        $bestProduct = $topProducts->first()?->product_name ?? '—';
+
+        if (!class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            return redirect()->route('admin.reports.export.csv', ['from' => $from, 'to' => $to])
+                ->with('warning', 'PDF export requires barryvdh/laravel-dompdf. Falling back to CSV.');
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.reports.pdf', compact(
+            'totalSales', 'totalRevenue', 'topProducts', 'dailyBreakdown', 'bestProduct', 'from', 'to'
+        ));
+
+        return $pdf->download("report_{$from}_to_{$to}.pdf");
+    }
+
+    // ── Shared query logic ────────────────────────────────────────────────────
+
+    private function buildReportData(string $from, string $to): array
+    {
+        $salesQuery = Sale::completed()
+            ->whereDate('created_at', '>=', $from)
+            ->whereDate('created_at', '<=', $to);
+
+        $totalSales   = (clone $salesQuery)->count();
+        $totalRevenue = (clone $salesQuery)->sum('total_amount');
+
+        $topProducts = SaleItem::selectRaw('product_name, SUM(quantity) as total_qty, SUM(subtotal) as total_revenue')
+            ->whereHas('sale', fn ($q) =>
+                $q->completed()
+                  ->whereDate('created_at', '>=', $from)
+                  ->whereDate('created_at', '<=', $to)
+            )
+            ->groupBy('product_name')
+            ->orderByDesc('total_qty')
+            ->limit(5)
+            ->get();
+
+        $dailyBreakdown = Sale::completed()
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as transactions, SUM(total_amount) as revenue')
+            ->whereDate('created_at', '>=', $from)
+            ->whereDate('created_at', '<=', $to)
+            ->groupByRaw('DATE(created_at)')
+            ->orderBy('date', 'desc')
+            ->get();
+
+        return [$totalSales, $totalRevenue, $topProducts, $dailyBreakdown];
+    }
+}
+</file>
+
 <file path="database/seeders/DatabaseSeeder.php">
 <?php
 
@@ -6631,7 +6809,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call(AdminSeeder::class);
+
         // ── Users ─────────────────────────────────────────────────────────────
 
         User::firstOrCreate(
@@ -6708,10 +6886,10 @@ User::firstOrCreate(
 
         // ── Categories ────────────────────────────────────────────────────────
 
-        $beverages = Category::create(['name' => 'Beverages', 'slug' => 'beverages']);
-        $food      = Category::create(['name' => 'Food',      'slug' => 'food']);
-        $desserts  = Category::create(['name' => 'Desserts',  'slug' => 'desserts']);
-        $snacks    = Category::create(['name' => 'Snacks',    'slug' => 'snacks']);
+        $beverages = Category::firstOrCreate(['slug' => 'beverages'], ['name' => 'Beverages']);
+        $food      = Category::firstOrCreate(['slug' => 'food'],      ['name' => 'Food']);
+        $desserts  = Category::firstOrCreate(['slug' => 'desserts'],  ['name' => 'Desserts']);
+        $snacks    = Category::firstOrCreate(['slug' => 'snacks'],    ['name' => 'Snacks']);
 
         // ── Products ──────────────────────────────────────────────────────────
 
@@ -6979,204 +7157,8 @@ User::firstOrCreate(
         ];
 
         foreach ($products as $product) {
-            Product::create($product);
+            Product::firstOrCreate(['sku' => $product['sku']], $product);
         }
-    }
-}
-</file>
-
-<file path="routes/api.php">
-<?php
-
-use App\Http\Controllers\Api\ProductApiController;
-use App\Http\Controllers\Api\NotificationApiController;
-use App\Http\Controllers\Api\ReportApiController;
-use App\Http\Controllers\Api\SaleApiController;
-use Illuminate\Support\Facades\Route;
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-| All routes below require an authenticated session (web guard) so that
-| the same cookie-based auth used by the Blade views protects the API.
-| The POS frontend is served from the same origin, so this is the right
-| guard to use — no token management needed on the client side.
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware(['web', 'auth'])->group(function () {
-
-    // ── Products ─────────────────────────────────────────────────────────────
-    Route::get('/products',         [ProductApiController::class, 'index']);
-    Route::post('/products',        [ProductApiController::class, 'store'])->middleware('admin');
-    Route::put('/products/{id}',    [ProductApiController::class, 'update'])->middleware('admin');
-    Route::delete('/products/{id}', [ProductApiController::class, 'destroy'])->middleware('admin');
-
-    // ── Sales ─────────────────────────────────────────────────────────────────
-    Route::post('/sales',           [SaleApiController::class, 'store'])->middleware('cashier');
-    Route::get('/sales',            [SaleApiController::class, 'index'])->middleware('admin');
-    Route::get('/sales/{id}',       [SaleApiController::class, 'show']);
-    Route::post('/sales/{id}/void', [SaleApiController::class, 'void'])->middleware('admin');
-
-    // ── Reports ───────────────────────────────────────────────────────────────
-    Route::get('/reports',          [ReportApiController::class, 'index'])->middleware('admin');
-    Route::get('/notifications',    [NotificationApiController::class, 'index']);
-});
-</file>
-
-<file path="app/Http/Controllers/Admin/ReportController.php">
-<?php
-
-namespace App\Http\Controllers\Admin;
-
-use App\Http\Controllers\Controller;
-use App\Models\Sale;
-use App\Models\SaleItem;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use Illuminate\View\View;
-
-class ReportController extends Controller
-{
-    public function index(Request $request): View
-    {
-        $from = $request->filled('from') ? $request->from : now()->startOfMonth()->toDateString();
-        $to   = $request->filled('to')   ? $request->to   : now()->toDateString();
-
-        [$totalSales, $totalRevenue, $topProducts, $dailyBreakdown] = $this->buildReportData($from, $to);
-
-        $bestProduct = $topProducts->first()?->product_name ?? '—';
-
-        return view('admin.reports.index', compact(
-            'totalSales',
-            'totalRevenue',
-            'topProducts',
-            'dailyBreakdown',
-            'bestProduct',
-            'from',
-            'to',
-        ));
-    }
-
-    // ── P2.1 — CSV Export ─────────────────────────────────────────────────────
-
-    public function exportCsv(Request $request): StreamedResponse
-    {
-        $from = $request->get('from', now()->startOfMonth()->toDateString());
-        $to   = $request->get('to',   now()->toDateString());
-
-        [$totalSales, $totalRevenue, $topProducts, $dailyBreakdown] = $this->buildReportData($from, $to);
-
-        $filename = "report_{$from}_to_{$to}.csv";
-
-        return response()->streamDownload(function () use ($from, $to, $totalSales, $totalRevenue, $topProducts, $dailyBreakdown) {
-            $handle = fopen('php://output', 'w');
-
-            // Summary section
-            fputcsv($handle, ['PointSale — Sales Report']);
-            fputcsv($handle, ['Period', "{$from} to {$to}"]);
-            fputcsv($handle, ['Total Transactions', $totalSales]);
-            fputcsv($handle, ['Total Revenue', number_format($totalRevenue, 2)]);
-            fputcsv($handle, []);
-
-            // Top products
-            fputcsv($handle, ['Top 5 Products']);
-            fputcsv($handle, ['Rank', 'Product', 'Units Sold', 'Revenue']);
-            foreach ($topProducts as $i => $item) {
-                fputcsv($handle, [
-                    $i + 1,
-                    $item->product_name,
-                    $item->total_qty,
-                    number_format($item->total_revenue, 2),
-                ]);
-            }
-            fputcsv($handle, []);
-
-            // Daily breakdown
-            fputcsv($handle, ['Daily Breakdown']);
-            fputcsv($handle, ['Date', 'Transactions', 'Revenue']);
-            foreach ($dailyBreakdown as $row) {
-                fputcsv($handle, [
-                    $row->date,
-                    $row->transactions,
-                    number_format($row->revenue, 2),
-                ]);
-            }
-
-            fclose($handle);
-        }, $filename, [
-            'Content-Type' => 'text/csv',
-        ]);
-    }
-
-    // ── P2.2 — XLSX Export ────────────────────────────────────────────────────
-    // Requires: composer require maatwebsite/excel
-    // If the package is not installed, this falls back to CSV download.
-
-    public function exportXlsx(Request $request)
-    {
-        $from = $request->get('from', now()->startOfMonth()->toDateString());
-        $to   = $request->get('to',   now()->toDateString());
-
-        return (new \App\Exports\ReportExport($from, $to))->download();
-    }
-
-    // ── P2.3 — PDF Export ─────────────────────────────────────────────────────
-    // Requires: composer require barryvdh/laravel-dompdf
-
-    public function exportPdf(Request $request)
-    {
-        $from = $request->get('from', now()->startOfMonth()->toDateString());
-        $to   = $request->get('to',   now()->toDateString());
-
-        [$totalSales, $totalRevenue, $topProducts, $dailyBreakdown] = $this->buildReportData($from, $to);
-        $bestProduct = $topProducts->first()?->product_name ?? '—';
-
-        if (!class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-            return redirect()->route('admin.reports.export.csv', ['from' => $from, 'to' => $to])
-                ->with('warning', 'PDF export requires barryvdh/laravel-dompdf. Falling back to CSV.');
-        }
-
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.reports.pdf', compact(
-            'totalSales', 'totalRevenue', 'topProducts', 'dailyBreakdown', 'bestProduct', 'from', 'to'
-        ));
-
-        return $pdf->download("report_{$from}_to_{$to}.pdf");
-    }
-
-    // ── Shared query logic ────────────────────────────────────────────────────
-
-    private function buildReportData(string $from, string $to): array
-    {
-        $salesQuery = Sale::completed()
-            ->whereDate('created_at', '>=', $from)
-            ->whereDate('created_at', '<=', $to);
-
-        $totalSales   = (clone $salesQuery)->count();
-        $totalRevenue = (clone $salesQuery)->sum('total_amount');
-
-        $topProducts = SaleItem::selectRaw('product_name, SUM(quantity) as total_qty, SUM(subtotal) as total_revenue')
-            ->whereHas('sale', fn ($q) =>
-                $q->completed()
-                  ->whereDate('created_at', '>=', $from)
-                  ->whereDate('created_at', '<=', $to)
-            )
-            ->groupBy('product_name')
-            ->orderByDesc('total_qty')
-            ->limit(5)
-            ->get();
-
-        $dailyBreakdown = Sale::completed()
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as transactions, SUM(total_amount) as revenue')
-            ->whereDate('created_at', '>=', $from)
-            ->whereDate('created_at', '<=', $to)
-            ->groupByRaw('DATE(created_at)')
-            ->orderBy('date', 'desc')
-            ->get();
-
-        return [$totalSales, $totalRevenue, $topProducts, $dailyBreakdown];
     }
 }
 </file>
