@@ -1,59 +1,212 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🛒 Point of Sale (POS) System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A full-featured web-based Point of Sale system built with **Laravel**, designed for small to medium businesses. It supports real-time sales processing, inventory management, role-based access control, report generation, and a Progressive Web App (PWA) experience for cashiers.
 
-## About Laravel
+---
+🌐 Live Deployment
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+https://pos-finalproject.onrender.com/
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 👨‍💻 Developers
 
-## Learning Laravel
+| Name | GitHub |
+|------|--------|
+| Khurt S. Calicdan | [@KhurtSC](https://github.com/KhurtSC) |
+| Mark Allen A. Medrano | [@Aizz27](https://github.com/Aizz27) |
+| King Charles Arwin C. Volante | [@codew-kicha](https://github.com/codew-kicha) |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 📖 About the System
 
-## Laravel Sponsors
+This POS system is built as a Laravel final project. It simulates a real-world point of sale environment where a **cashier** processes customer transactions and an **admin** manages the entire business — products, users, reports, and logs.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+The system is divided into two main panels:
 
-### Premium Partners
+- **Admin Panel** — full control over products, categories, users, sales history, report exports, and activity monitoring.
+- **Cashier Panel** — a fast, responsive POS interface for building carts, applying discounts, processing payments, and printing receipts.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## ✨ Features
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Authentication
+- Secure login and logout with session handling
+- Passwords stored with bcrypt hashing
+- Role-based access: **Admin** and **Cashier**
+- Admin-only user registration
 
-## Code of Conduct
+### Admin Panel
+- **Dashboard** — real-time KPI cards (revenue, sales count, top products) and 7-day revenue and transaction charts
+- **Product Management** — full CRUD with image upload, QR label printing, CSV import, and soft delete
+- **Category Management** — full CRUD for product categories
+- **User Management** — create, edit, and delete admin and cashier accounts
+- **Sales History** — view and filter all transactions by date or cashier; void any completed sale
+- **Reports** — generate sales reports by date range, exportable as CSV, XLSX (multi-sheet), or PDF
+- **Activity Logs** — a complete audit trail of every login, sale, void, edit, and system event
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Cashier Panel
+- **POS Cart Screen** — search products, scan QR codes, set quantities, and build a cart in real time
+- **Discounts** — apply percentage or flat-amount discounts per transaction
+- **Payment Methods** — Cash, Card, GCash, or Other
+- **Change Calculation** — automatic change computation from amount tendered
+- **Receipt** — printable receipt with sale reference number and QR code after every transaction
 
-## Security Vulnerabilities
+### REST API
+- `GET /api/products` — list available products
+- `POST /api/products` — create a product
+- `PUT /api/products/{id}` — update a product
+- `DELETE /api/products/{id}` — delete a product
+- `POST /api/sales` — process a sale (DB transaction, stock deduction, activity log, email alert)
+- `GET /api/sales` — list all sales
+- `GET /api/sales/{id}` — view a single sale
+- `POST /api/sales/{id}/void` — void a completed sale
+- `GET /api/reports` — fetch report data as JSON
+- `GET /api/notifications` — fetch recent activity for real-time bell notifications
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Additional Features
+- 📊 **Charts & Analytics** — Chart.js-powered revenue and transaction graphs
+- 🔔 **Real-time Notifications** — browser polls every 15 seconds for new activity
+- 📧 **Email Alerts** — low-stock email sent to all admins after every sale
+- 🌙 **Dark Mode** — toggleable theme saved to localStorage
+- 📦 **CSV Import** — bulk product import via spreadsheet upload
+- 📄 **Multi-format Export** — CSV, XLSX (3-sheet workbook), PDF, JSON
+- 🔍 **Search & Filters** — product search, date range filters, cashier filters
+- 📝 **Activity Logs** — every system event is recorded with who, what, and when
+- 📱 **PWA Support** — service worker and web manifest for offline-capable cashier screen
+- 🏷️ **QR Code Generation** — printable product labels and receipt QR codes
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 🗄️ Database Design
+
+| Table | Description |
+|-------|-------------|
+| `users` | Admins and cashiers with role column |
+| `categories` | Product categories |
+| `products` | Products with stock, price, image, and soft delete |
+| `sales` | Transaction records with payment details and status |
+| `sale_items` | Individual line items per sale (snapshot of price at time of purchase) |
+| `activity_logs` | Full audit log of all system events |
+
+### Relationships
+- `Category` → has many → `Products`
+- `Product` → has many → `SaleItems`
+- `Sale` → has many → `SaleItems`
+- `Sale` → belongs to → `User` (cashier)
+- `SaleItem` → belongs to → `Product` (with soft delete support)
+
+---
+
+## ⚙️ Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Backend | PHP 8.x + Laravel 11 |
+| Frontend | Blade Templates + Tailwind CSS |
+| Database | MySQL / SQLite |
+| Charts | Chart.js |
+| QR Codes | `simplesoftwareio/simple-qrcode` |
+| Excel Export | `phpoffice/phpspreadsheet` |
+| PDF Export | `barryvdh/laravel-dompdf` |
+| Version Control | Git + GitHub |
+| Deployment | Render |
+
+---
+
+## 🚀 Installation & Setup
+
+### Requirements
+- PHP >= 8.1
+- Composer
+- Node.js & NPM
+- MySQL or SQLite
+
+### Steps
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Aizz27/POS_finalproject.git
+cd POS_finalproject
+
+# 2. Install PHP dependencies
+composer install
+
+# 3. Install Node dependencies
+npm install
+
+# 4. Copy environment file and configure
+cp .env.example .env
+
+# 5. Generate application key
+php artisan key:generate
+
+# 6. Configure your database in .env
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=pos_db
+# DB_USERNAME=root
+# DB_PASSWORD=
+
+# 7. Run migrations and seed the database
+php artisan migrate --seed
+
+# 8. Link storage for product images
+php artisan storage:link
+
+# 9. Build frontend assets
+npm run build
+
+# 10. Start the development server
+php artisan serve
+```
+
+Then visit `http://localhost:8000` 
+
+---
+
+## 📁 Project Structure (Custom Code)
+
+```
+app/
+├── Exports/
+│   └── ReportExport.php          # XLSX multi-sheet export builder
+├── Http/
+│   ├── Controllers/
+│   │   ├── Admin/                # Dashboard, Products, Categories, Users, Sales, Reports, Logs
+│   │   ├── Api/                  # REST API — Products, Sales, Reports, Notifications
+│   │   ├── Auth/                 # Login, logout, registration
+│   │   └── Cashier/              # POS cart screen, cashier dashboard, receipt
+│   └── Middleware/
+│       ├── AdminMiddleware.php
+│       └── CashierMiddleware.php
+├── Models/                       # User, Category, Product, Sale, SaleItem, ActivityLog
+└── Services/
+    └── ActivityLogger.php        # Centralized event logging service
+
+database/
+├── migrations/                   # 6 custom tables
+└── seeders/DatabaseSeeder.php    # Demo users and products
+
+resources/views/
+├── admin/                        # All admin panel pages
+├── cashier/                      # POS screen, dashboard, receipt
+└── components/                   # Layout, sidebar, topbar, alert, modal
+
+public/
+├── manifest.webmanifest          # PWA manifest
+└── service-worker.js             # Offline caching
+
+routes/
+├── web.php                       # Web routes with role middleware groups
+└── api.php                       # REST API routes
+```
+
+---
+
+## 📜 License
+
+This project was developed as a **Final Project** for a Laravel Web Development course. All rights reserved by the developers.
