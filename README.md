@@ -2,16 +2,6 @@
 
 A full-featured web-based Point of Sale system built with **Laravel**, designed for small to medium businesses. It supports real-time sales processing, inventory management, role-based access control, report generation, and a Progressive Web App (PWA) experience for cashiers.
 
----
-
-## 🌐 Live Deployment
-
-> **[https://pos-finalproject.onrender.com/](https://pos-finalproject.onrender.com/)**
-
-| Role     | Email                      | Password   |
-|----------|----------------------------|------------|
-| Admin    | admin@pointsale.com        | password   |
-| Cashier  | cashier@pointsale.com      | password   |
 
 ---
 
