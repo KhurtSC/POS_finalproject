@@ -14,22 +14,26 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+
         // ── Users ─────────────────────────────────────────────────────────────
 
-        User::create([
-            'name'     => 'Admin',
-            'email'    => 'admin@pointsale.com',
-            'password' => Hash::make('password'),
-            'role'     => 'admin',
-        ]);
+        User::firstOrCreate(
+    ['email' => 'admin@pointsale.com'],
+    [
+        'name'     => 'Admin',
+        'password' => Hash::make('password'),
+        'role'     => 'admin',
+    ]
+);
 
-        User::create([
-            'name'     => 'Cashier',
-            'email'    => 'cashier@pointsale.com',
-            'password' => Hash::make('password'),
-            'role'     => 'cashier',
-        ]);
-
+User::firstOrCreate(
+    ['email' => 'cashier@pointsale.com'],
+    [
+        'name'     => 'Cashier',
+        'password' => Hash::make('password'),
+        'role'     => 'cashier',
+    ]
+);
         // ── Copy demo images from public/assets into the storage disk ─────────
         //
         // The controller stores uploaded images at:  storage/app/public/products/
@@ -87,10 +91,10 @@ class DatabaseSeeder extends Seeder
 
         // ── Categories ────────────────────────────────────────────────────────
 
-        $beverages = Category::create(['name' => 'Beverages', 'slug' => 'beverages']);
-        $food      = Category::create(['name' => 'Food',      'slug' => 'food']);
-        $desserts  = Category::create(['name' => 'Desserts',  'slug' => 'desserts']);
-        $snacks    = Category::create(['name' => 'Snacks',    'slug' => 'snacks']);
+        $beverages = Category::firstOrCreate(['slug' => 'beverages'], ['name' => 'Beverages']);
+        $food      = Category::firstOrCreate(['slug' => 'food'],      ['name' => 'Food']);
+        $desserts  = Category::firstOrCreate(['slug' => 'desserts'],  ['name' => 'Desserts']);
+        $snacks    = Category::firstOrCreate(['slug' => 'snacks'],    ['name' => 'Snacks']);
 
         // ── Products ──────────────────────────────────────────────────────────
 
@@ -358,7 +362,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($products as $product) {
-            Product::create($product);
+            Product::firstOrCreate(['sku' => $product['sku']], $product);
         }
     }
 }
