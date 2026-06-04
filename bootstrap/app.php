@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
     $middleware->trustProxies(at: '*');
+    $middleware->alias([
+        'admin'   => \App\Http\Middleware\AdminMiddleware::class,
+        'cashier' => \App\Http\Middleware\CashierMiddleware::class,
+    ]);
 })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
