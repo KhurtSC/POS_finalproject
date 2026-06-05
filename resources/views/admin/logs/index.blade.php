@@ -44,7 +44,6 @@
                         <th class="px-5 py-3">Event</th>
                         <th class="px-5 py-3">User</th>
                         <th class="px-5 py-3">Description</th>
-                        <th class="px-5 py-3">IP Address</th>
                         <th class="px-5 py-3">Time</th>
                     </tr>
                 </thead>
@@ -74,7 +73,6 @@
                                 @endif
                             </td>
                             <td class="px-5 py-3 text-slate-700">{{ $log->description }}</td>
-                            <td class="px-5 py-3 font-mono text-xs text-slate-500">{{ $log->ip_address ?? '—' }}</td>
                             <td class="px-5 py-3 text-slate-500">
                                 {{ $log->created_at->format('M j, Y g:i A') }}
                             </td>

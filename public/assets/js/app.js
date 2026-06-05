@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const syncThemeLabel = () => {
             const isDark = document.documentElement.classList.contains('dark');
-            themeLabel.textContent = isDark ? '☀ Light' : '🌙 Dark';
+            themeLabel.textContent = isDark ? '☀ Light Mode' : '🌙 Dark Mode';
         };
 
         themeToggle.addEventListener('click', () => {
