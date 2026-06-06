@@ -12,7 +12,7 @@
             <canvas id="salesLineChart" class="mt-4 h-72"></canvas>
         </section>
         <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 class="text-lg font-black text-slate-950">Top Selling Products</h2>
+            <h2 class="text-lg font-black text-slate-950">Transactions Over 7 Days</h2>
             <canvas id="topProductsChart" class="mt-4 h-72"></canvas>
         </section>
     </div>

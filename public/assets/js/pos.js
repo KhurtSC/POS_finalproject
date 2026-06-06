@@ -16,11 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const scanButton = root.querySelector('[data-scan-submit]');
     const scanStatus = root.querySelector('[data-scan-status]');
     const grid = root.querySelector('[data-product-grid]');
-    const itemsEl = root.querySelector('[data-cart-items]');
-    const cartCount = root.querySelector('[data-cart-count]');
-    const subtotalEl = root.querySelector('[data-subtotal]');
-    const taxEl = root.querySelector('[data-tax]');
-    const totalEl = root.querySelector('[data-grand-total]');
+    const itemsEl = document.querySelector('[data-cart-items]');
+    const cartCount = document.querySelector('[data-cart-count]');
+    const subtotalEl = document.querySelector('[data-subtotal]');
+    const taxEl = document.querySelector('[data-tax]');
+    const totalEl = document.querySelector('[data-grand-total]');
+    const clearCartBtn = document.querySelector('[data-clear-cart]');
+    const checkoutBtn = document.querySelector('[data-checkout]');
     const prevBtn = root.querySelector('[data-prev-page]');
     const nextBtn = root.querySelector('[data-next-page]');
     const pageInfo = root.querySelector('[data-page-info]');
@@ -410,13 +412,13 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCart();
     });
 
-    root.querySelector('[data-clear-cart]').addEventListener('click', () => {
+    clearCartBtn.addEventListener('click', () => {
         cart.clear();
         renderCart();
         setScanStatus('Order cleared. Ready for the next scan.', 'neutral');
     });
 
-    root.querySelector('[data-checkout]').addEventListener('click', () => {
+    checkoutBtn.addEventListener('click', () => {
         if (!cart.size) {
             alert('Your cart is empty.');
             return;

@@ -1,45 +1,7 @@
 <x-layout title="Cashier POS">
     <div class="space-y-6" data-pos>
-        <div class="grid gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
-            <aside class="space-y-6">
-                <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
-                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
-                        <div>
-                            <h2 class="text-lg font-black text-slate-950">Current Order</h2>
-                            <p data-cart-count class="text-sm font-semibold text-slate-500">0 items selected</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button type="button" data-clear-cart
-                                class="rounded-md border border-red-200 px-4 py-2.5 text-sm font-black text-red-600 transition hover:bg-red-50">
-                                Clear
-                            </button>
-                            <button type="button" data-checkout
-                                class="rounded-md bg-teal-500 px-5 py-2.5 text-sm font-black text-white transition hover:bg-teal-600">
-                                Checkout
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid gap-4 p-5 lg:grid-cols-[1fr_320px]">
-                        <div data-cart-items class="grid min-h-32 gap-3 sm:grid-cols-2 xl:grid-cols-3"></div>
-
-                        <div class="rounded-lg bg-slate-50 p-4 text-sm">
-                            <div class="flex justify-between">
-                                <span class="font-semibold text-slate-500">Subtotal</span>
-                                <span data-subtotal class="font-black">PHP 0.00</span>
-                            </div>
-                            <div class="mt-2 flex justify-between">
-                                <span class="font-semibold text-slate-500">VAT (12%)</span>
-                                <span data-tax class="font-black">PHP 0.00</span>
-                            </div>
-                            <div class="mt-3 flex justify-between border-t border-slate-200 pt-3 text-lg">
-                                <span class="font-black text-slate-950">Grand Total</span>
-                                <span data-grand-total class="font-black text-teal-600">PHP 0.00</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </aside>
+        <div class="grid gap-6 ">
+           
 
             <main class="space-y-6">
                 <section>
