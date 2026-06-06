@@ -3,7 +3,7 @@
         <div class="grid gap-6">
             <main class="space-y-6">
                 <section>
-                    <div class="mb-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                    <div class="mb-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-300 dark:bg-white">
                         <div class="grid gap-3 sm:grid-cols-1 lg:grid-cols-[1.2fr_1fr_220px]">
                             <label class="relative block">
                                 <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-slate-400">SCAN</span>
@@ -26,17 +26,17 @@
                         <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
                             <p data-scan-status class="text-sm font-semibold text-slate-500">Ready for SKU, barcode, or QR code input.</p>
                             <button type="button" data-scan-submit
-                                class="rounded-md bg-slate-950 px-5 py-2.5 text-sm font-black text-white transition hover:bg-teal-600">
+                                class="rounded-md bg-slate-950 px-5 py-2.5 text-sm font-black text-white transition hover:bg-teal-600 dark:bg-slate-950">
                                 Add Scanned Item
                             </button>
                         </div>
                     </div>
 
                     {{-- Product grid (populated by JavaScript) --}}
-                    <div data-product-grid class="grid min-h-[500px] w-full content-start gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+                    <div data-product-grid class="grid min-h-[500px] w-full content-start gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4">
                         @foreach ($products ?? [] as $product)
                             <button type="button"
-                                class="product-card overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md"
+                                class="product-card overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md dark:border-slate-300 dark:bg-white"
                                 data-id="{{ $product->id }}"
                                 data-name="{{ $product->name }}"
                                 data-sku="{{ $product->sku }}"
