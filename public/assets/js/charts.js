@@ -1,11 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const salesChart    = document.getElementById('salesLineChart');
+    const salesChart = document.getElementById('salesLineChart');
     const productsChart = document.getElementById('topProductsChart');
 
-    // Use real data injected by DashboardController via window.__chartData.
-    // Falls back to empty arrays so the canvas renders without errors even if
-    // the controller data is missing (e.g., fresh install with no sales yet).
     const chartData = window.__chartData || { labels: [], revenue: [], counts: [] };
+
+    // Detect light/dark mode and pick appropriate colors
+    const isDark = document.documentElement.classList.contains('dark');
+    const tickColor   = isDark ? '#94a3b8' : '#64748b';
+    const gridColor   = isDark ? '#1e293b' : '#f1f5f9';
+    const barColor    = isDark ? '#14b8a6' : '#0f172a';
 
     if (salesChart) {
         new Chart(salesChart, {
@@ -25,11 +28,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 responsive: true,
                 plugins: { legend: { display: false } },
                 scales: {
+                    x: {
+                        ticks: { color: tickColor },
+                        grid:  { color: gridColor },
+                    },
                     y: {
                         beginAtZero: true,
                         ticks: {
+                            color: tickColor,
                             callback: (value) => '₱' + Number(value).toLocaleString(),
                         },
+                        grid: { color: gridColor },
                     },
                 },
             },
@@ -37,8 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (productsChart) {
-        // Top products chart is driven by the Reports page, not the dashboard.
-        // The dashboard passes 7-day sales data only; show daily transaction counts here.
         new Chart(productsChart, {
             type: 'bar',
             data: {
@@ -46,13 +53,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 datasets: [{
                     label: 'Transactions',
                     data: chartData.counts,
-                    backgroundColor: '#0f172a',
+                    backgroundColor: barColor,
                 }],
             },
             options: {
                 responsive: true,
                 plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                scales: {
+                    x: {
+                        ticks: { color: tickColor },
+                        grid:  { color: gridColor },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: tickColor, stepSize: 1 },
+                        grid: { color: gridColor },
+                    },
+                },
             },
         });
     }

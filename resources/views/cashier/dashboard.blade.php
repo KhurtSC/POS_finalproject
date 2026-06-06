@@ -1,12 +1,10 @@
 <x-layout title="Cashier POS">
     <div class="space-y-6" data-pos>
-        <div class="grid gap-6 ">
-           
-
+        <div class="grid gap-6">
             <main class="space-y-6">
                 <section>
                     <div class="mb-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                        <div class="grid gap-3 lg:grid-cols-[1.2fr_1fr_220px]">
+                        <div class="grid gap-3 sm:grid-cols-1 lg:grid-cols-[1.2fr_1fr_220px]">
                             <label class="relative block">
                                 <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-slate-400">SCAN</span>
                                 <input data-code-scan placeholder="Scan QR/barcode or type SKU"
@@ -14,10 +12,10 @@
                             </label>
 
                             <input data-product-search placeholder="Search products"
-                                class="rounded-md border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10">
+                                class="w-full rounded-md border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10">
 
                             <select data-category-filter
-                                class="rounded-md border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10">
+                                class="w-full rounded-md border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10">
                                 <option value="">All categories</option>
                                 @foreach ($categories ?? [] as $cat)
                                     <option value="{{ $cat->id }}">{{ $cat->name }}</option>
@@ -35,7 +33,7 @@
                     </div>
 
                     {{-- Product grid (populated by JavaScript) --}}
-                    <div data-product-grid class="grid min-h-[500px] content-start gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                    <div data-product-grid class="grid min-h-[500px] w-full content-start gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
                         @foreach ($products ?? [] as $product)
                             <button type="button"
                                 class="product-card overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md"
@@ -47,23 +45,23 @@
                                 @if ($product->image)
                                     <img src="{{ asset('storage/' . $product->image) }}"
                                          alt="{{ $product->name }}"
-                                         class="h-40 w-full object-cover"
+                                         class="h-36 w-full object-cover"
                                          loading="lazy">
                                 @else
-                                    <div class="flex h-40 w-full items-center justify-center bg-slate-100 text-3xl">POS</div>
+                                    <div class="flex h-36 w-full items-center justify-center bg-slate-100 text-3xl">POS</div>
                                 @endif
-                                <div class="p-4">
-                                    <div class="flex items-start justify-between gap-3">
-                                        <div>
-                                            <h2 class="font-black text-slate-950">{{ $product->name }}</h2>
-                                            <p class="text-sm font-semibold text-slate-500">{{ $product->category->name }}</p>
+                                <div class="p-3">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <h2 class="truncate font-black text-slate-950 text-sm">{{ $product->name }}</h2>
+                                            <p class="truncate text-xs font-semibold text-slate-500">{{ $product->category->name }}</p>
                                         </div>
-                                        <p class="font-black text-teal-600">PHP {{ number_format($product->price, 2) }}</p>
+                                        <p class="shrink-0 font-black text-teal-600 text-sm">PHP {{ number_format($product->price, 2) }}</p>
                                     </div>
-                                    <div class="mt-3 flex items-center justify-between gap-3">
-                                        <p class="text-xs font-bold uppercase tracking-wide text-slate-400">{{ $product->sku ?? 'No SKU' }} / Stock {{ $product->stock }}</p>
+                                    <div class="mt-2 flex items-center justify-between gap-2">
+                                        <p class="truncate text-xs font-bold uppercase tracking-wide text-slate-400">{{ $product->sku ?? 'No SKU' }} / Stock {{ $product->stock }}</p>
                                         @if ($product->isLowStock())
-                                            <span class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600">Low Stock</span>
+                                            <span class="shrink-0 rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600">Low</span>
                                         @endif
                                     </div>
                                 </div>
